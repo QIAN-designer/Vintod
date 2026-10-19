@@ -82,6 +82,27 @@ import Swal from 'sweetalert2';
             </div>
           </div>
 
+          @if (isEditMode()) {
+            <div class="border-t border-gray-200 pt-4">
+              <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
+                <div class="flex flex-col">
+                  <span class="text-sm font-medium text-gray-900">Visibilidad de la prenda</span>
+                  <span class="text-xs text-gray-500 mt-0.5">
+                    {{ productForm.get('isActive')?.value ? 'La prenda está visible para todos los compradores' : 'La prenda está oculta / pausada' }}
+                  </span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    formControlName="isActive"
+                    class="sr-only peer"
+                  />
+                  <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-vinted rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vinted"></div>
+                </label>
+              </div>
+            </div>
+          }
+
           <div class="pt-5 flex justify-end gap-3">
             <button type="button" (click)="goBack()" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-vinted">
               Cancelar
@@ -111,7 +132,8 @@ export class ProductFormComponent implements OnInit {
     price: ['', [Validators.required, Validators.min(0.01)]],
     brand: ['', [Validators.required]],
     size: ['', [Validators.required]],
-    condition: ['', [Validators.required]]
+    condition: ['', [Validators.required]],
+    isActive: [true]
   });
 
   ngOnInit() {

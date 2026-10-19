@@ -325,6 +325,25 @@ import { AppDatePipe } from '../../../shared/pipes/date.pipe';
             </div>
           </div>
 
+          <div class="pt-2">
+            <div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/60">
+              <div class="flex flex-col">
+                <span class="text-xs font-semibold text-slate-800 uppercase tracking-wide">Visibilidad en el catálogo</span>
+                <span class="text-xs text-slate-500 mt-0.5">
+                  {{ productForm.get('isActive')?.value ? 'La prenda está activa y visible para los compradores' : 'La prenda está pausada / oculta' }}
+                </span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  formControlName="isActive"
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+              </label>
+            </div>
+          </div>
+
           <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
             <button
               type="button"
@@ -368,7 +387,8 @@ export class AdminProductsComponent implements OnInit, AfterViewInit {
     price: ['', [Validators.required, Validators.min(0.01)]],
     brand: ['', [Validators.required]],
     size: ['', [Validators.required]],
-    condition: ['', [Validators.required]]
+    condition: ['', [Validators.required]],
+    isActive: [true]
   });
 
   ngOnInit() {
@@ -424,7 +444,8 @@ export class AdminProductsComponent implements OnInit, AfterViewInit {
       price: '',
       brand: '',
       size: '',
-      condition: ''
+      condition: '',
+      isActive: true
     });
     this.isModalOpen.set(true);
   }
@@ -437,7 +458,8 @@ export class AdminProductsComponent implements OnInit, AfterViewInit {
       price: prod.price,
       brand: prod.brand,
       size: prod.size,
-      condition: prod.condition
+      condition: prod.condition,
+      isActive: prod.isActive !== false
     });
     this.isModalOpen.set(true);
   }

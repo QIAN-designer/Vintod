@@ -17,7 +17,9 @@ const createProductSchema = z.object({
   price: z.number().positive('El precio debe ser un número positivo'),
   brand: z.string().min(1, 'La marca es obligatoria'),
   size: z.string().min(1, 'La talla es obligatoria'),
-  condition: z.string().min(1, 'El estado/condición es obligatorio')
+  condition: z.string().min(1, 'El estado/condición es obligatorio'),
+  isActive: z.boolean().optional(),
+  status: z.enum(['available', 'reserved', 'sold', 'hidden']).optional()
 });
 
 // Partial hace que todos los campos sean opcionales para el PUT/PATCH
