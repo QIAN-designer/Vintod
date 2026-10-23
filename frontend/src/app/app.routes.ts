@@ -17,7 +17,7 @@ export const routes: Routes = [
       },
       {
         path: 'products/new',
-        loadComponent: () => import('./features/products/pages/product-form/product-form.component').then(m => m.ProductFormComponent)
+        loadComponent: () => import('./features/products/pages/product-create/product-create.component').then(m => m.ProductCreatePageComponent)
       },
       {
         path: 'products/:id',
@@ -25,7 +25,7 @@ export const routes: Routes = [
       },
       {
         path: 'products/:id/edit',
-        loadComponent: () => import('./features/products/pages/product-form/product-form.component').then(m => m.ProductFormComponent)
+        loadComponent: () => import('./features/products/pages/product-edit/product-edit.component').then(m => m.ProductEditPageComponent)
       }
     ]
   },
@@ -50,7 +50,11 @@ export const routes: Routes = [
       },
       {
         path: 'products/new',
-        loadComponent: () => import('./features/products/pages/product-form/product-form.component').then(m => m.ProductFormComponent)
+        loadComponent: () => import('./features/products/pages/product-create/product-create.component').then(m => m.ProductCreatePageComponent)
+      },
+      {
+        path: 'products/:id/edit',
+        loadComponent: () => import('./features/products/pages/product-edit/product-edit.component').then(m => m.ProductEditPageComponent)
       },
       {
         path: 'users',

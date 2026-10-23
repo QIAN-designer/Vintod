@@ -209,50 +209,57 @@ const create = async productData => {
         sellerId: rawSellerId,
     });
 
-    // Crear producto base
-    const product = await prisma.product.create({
-        data: {
-            title,
-            slug,
-            description,
-            status,
-            isActive,
-            sellerId,
-            categoryId,
-            brandId,
-        },
-    });
+    // Creación transaccional con integridad referencial atómica
+    const createdProductId = await prisma.$transaction(async tx => {
+        // 1. Crear producto base
+        const product = await tx.product.create({
+            data: {
+                title,
+                slug,
+                description,
+                status,
+                isActive,
+                sellerId,
+                categoryId,
+                brandId,
+            },
+        });
 
-    // Crear variante por defecto
-    const sku = `SKU-${slug.toUpperCase()}-1`;
-    const variant = await prisma.productVariant.create({
-        data: {
-            sku,
-            size: size || "M",
-            color: color || null,
-            condition: condition || "Muy bueno",
-            price: typeof price === "number" ? price : parseFloat(price) || 0,
-            stock: typeof stock === "number" ? stock : parseInt(stock, 10) || 1,
-            productId: product.id,
-        },
-    });
+        // 2. Crear variante asociada al producto
+        const sku = `SKU-${slug.toUpperCase()}-1`;
+        const variant = await tx.productVariant.create({
+            data: {
+                sku,
+                size: size || "M",
+                color: color || null,
+                condition: condition || "Muy bueno",
+                price: typeof price === "number" ? price : parseFloat(price) || 0,
+                stock: typeof stock === "number" ? stock : parseInt(stock, 10) || 1,
+                productId: product.id,
+            },
+        });
 
-    // Guardar imagen si existe
-    const imgUrls = images.length > 0 ? images : image ? [image] : [];
-    if (imgUrls.length > 0) {
-        for (let i = 0; i < imgUrls.length; i++) {
-            await prisma.productImage.create({
-                data: {
-                    url: imgUrls[i],
-                    isCover: i === 0,
-                    sortOrder: i,
-                    variantId: variant.id,
-                },
-            });
+        // 3. Crear imágenes asociadas a la variante
+        const imgUrls = images.length > 0 ? images : image ? [image] : [];
+        if (imgUrls.length > 0) {
+            for (let i = 0; i < imgUrls.length; i++) {
+                await tx.productImage.create({
+                    data: {
+                        url: imgUrls[i],
+                        isCover: i === 0,
+                        sortOrder: i,
+                        variantId: variant.id,
+                        entityType: "PRODUCT_VARIANT",
+                        entityId: variant.id,
+                    },
+                });
+            }
         }
-    }
 
-    return findById(product.id);
+        return product.id;
+    });
+
+    return findById(createdProductId);
 };
 
 const update = async (id, productData) => {

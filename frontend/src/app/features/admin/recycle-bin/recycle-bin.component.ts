@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ProductsStore } from '../../../core/services/products.store';
+import { ProductsStore } from '../../../core/store/products.store';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Product } from '../../../core/models/marketplace.model';
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';

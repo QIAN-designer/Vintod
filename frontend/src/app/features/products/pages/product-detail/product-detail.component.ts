@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, Input } from '@angular/core';
-import { ProductsStore } from '../../../../core/services/products.store';
+import { ProductsStore } from '../../../../core/store/products.store';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import Swal from 'sweetalert2';

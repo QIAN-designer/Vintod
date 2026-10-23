@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Product } from '../models/marketplace.model';
-import { ApiService } from './api.service';
+import { ProductService } from '../services/product.service';
 
 export interface ProductsState {
   products: Product[];
@@ -20,7 +20,7 @@ export interface ProductsState {
   providedIn: 'root'
 })
 export class ProductsStore {
-  private api = inject(ApiService);
+  private productService = inject(ProductService);
 
   private state = signal<ProductsState>({
     products: [],
@@ -120,7 +120,7 @@ export class ProductsStore {
     if (this.state().hasLoaded && !force) return;
 
     this.state.update(s => ({ ...s, loading: true, error: null }));
-    this.api.getProducts().subscribe({
+    this.productService.getProducts().subscribe({
       next: (res) => {
         if (res.success && res.data) {
           // Normalize _id or id
@@ -144,7 +144,7 @@ export class ProductsStore {
     this.state.update(s => ({ ...s, loading: true, error: null, selectedProduct: null }));
 
     const isMongoId = /^[a-fA-F0-9]{24}$/.test(idOrSlug);
-    const req = isMongoId ? this.api.getProduct(idOrSlug) : this.api.getProductBySlug(idOrSlug);
+    const req = isMongoId ? this.productService.getProduct(idOrSlug) : this.productService.getProductBySlug(idOrSlug);
 
     req.subscribe({
       next: (res) => {
@@ -162,7 +162,7 @@ export class ProductsStore {
 
   addProduct(product: Partial<Product>) {
     this.state.update(s => ({ ...s, loading: true, error: null }));
-    return this.api.createProduct(product).subscribe({
+    return this.productService.createProduct(product).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           const newProduct = { ...res.data, _id: res.data._id || res.data.id };
@@ -181,7 +181,7 @@ export class ProductsStore {
 
   updateProductData(id: string, product: Partial<Product>) {
     this.state.update(s => ({ ...s, loading: true, error: null }));
-    return this.api.updateProduct(id, product).subscribe({
+    return this.productService.updateProduct(id, product).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           const updated = { ...res.data, _id: res.data._id || res.data.id || id };
@@ -213,7 +213,7 @@ export class ProductsStore {
       )
     }));
 
-    const action = newActiveState ? this.api.activateProduct(id) : this.api.deactivateProduct(id);
+    const action = newActiveState ? this.productService.activateProduct(id) : this.productService.deactivateProduct(id);
     action.subscribe({
       next: (res) => {
         if (!res.success) {
@@ -240,7 +240,7 @@ export class ProductsStore {
 
   deleteProductData(id: string) {
     this.state.update(s => ({ ...s, loading: true, error: null }));
-    return this.api.deleteProduct(id).subscribe({
+    return this.productService.deleteProduct(id).subscribe({
       next: (res) => {
         if (res.success) {
           const deletedItem = this.state().products.find(p => p._id === id || p.id === id);
@@ -263,7 +263,7 @@ export class ProductsStore {
 
   loadDeletedProducts() {
     this.state.update(s => ({ ...s, loading: true, error: null }));
-    return this.api.getDeletedProducts().subscribe({
+    return this.productService.getDeletedProducts().subscribe({
       next: (res) => {
         if (res.success && res.data) {
           const normalized = res.data.map(p => ({
@@ -283,7 +283,7 @@ export class ProductsStore {
 
   restoreProductData(id: string) {
     this.state.update(s => ({ ...s, loading: true, error: null }));
-    return this.api.restoreProduct(id).subscribe({
+    return this.productService.restoreProduct(id).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           const restoredItem = { ...res.data, _id: res.data._id || res.data.id || id, deletedAt: null };

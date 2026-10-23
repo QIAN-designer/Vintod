@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ProductsStore } from '../../../core/services/products.store';
+import { ProductsStore } from '../../../core/store/products.store';
 import { AdminStore } from '../../../core/services/admin.store';
 import { AppCurrencyPipe } from '../../../shared/pipes/currency.pipe';
 import { AppDatePipe } from '../../../shared/pipes/date.pipe';

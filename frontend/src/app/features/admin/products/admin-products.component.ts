@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProductsStore } from '../../../core/services/products.store';
+import { ProductsStore } from '../../../core/store/products.store';
 import { AdminStore } from '../../../core/services/admin.store';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Product } from '../../../core/models/marketplace.model';
@@ -59,73 +59,17 @@ import { AppDatePipe } from '../../../shared/pipes/date.pipe';
         </div>
       </div>
 
-      <!-- Filters & Search Toolbar -->
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-          <!-- Buscador -->
-          <div class="lg:col-span-2">
-            <app-search-bar
-              placeholder="Buscar por título, descripción o marca..."
-              [searchTerm]="store.searchFilter()"
-              (searchChange)="store.setSearchFilter($event)"
-            ></app-search-bar>
-          </div>
-
-          <!-- Filtro Marca -->
-          <div>
-            <select
-              [value]="store.brandFilter()"
-              (change)="onBrandFilterChange($event)"
-              class="block w-full py-2 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="">Todas las Marcas</option>
-              @for (b of adminStore.brands(); track b.id) {
-                <option [value]="b.name">{{ b.name }}</option>
-              }
-            </select>
-          </div>
-
-          <!-- Filtro Estado Conservación -->
-          <div>
-            <select
-              [value]="store.conditionFilter()"
-              (change)="onConditionFilterChange($event)"
-              class="block w-full py-2 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="">Todas las Condiciones</option>
-              @for (c of adminStore.conditions(); track c.id) {
-                <option [value]="c.name">{{ c.name }}</option>
-              }
-            </select>
-          </div>
-
-          <!-- Filtro Visibilidad / Moderación -->
-          <div>
-            <select
-              [value]="store.statusFilter()"
-              (change)="onStatusFilterChange($event)"
-              class="block w-full py-2 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="all">Estado: Todos</option>
-              <option value="active">Solo Activos</option>
-              <option value="inactive">Solo Pausados</option>
-            </select>
-          </div>
+      <!-- Search Toolbar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div class="w-full sm:w-96">
+          <app-search-bar
+            placeholder="Buscar prenda por título, descripción o marca..."
+            [searchTerm]="store.searchFilter()"
+            (searchChange)="store.setSearchFilter($event)"
+          ></app-search-bar>
         </div>
-
-        <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-          <div>
-            Mostrando <span class="font-bold text-slate-800">{{ store.filteredProducts().length }}</span> prendas de un total de <span class="font-bold text-slate-800">{{ store.totalProductsCount() }}</span>.
-          </div>
-          @if (store.searchFilter() || store.brandFilter() || store.conditionFilter() || store.statusFilter() !== 'all') {
-            <button
-              type="button"
-              (click)="store.resetFilters()"
-              class="text-teal-600 hover:text-teal-700 font-medium underline"
-            >
-              Limpiar filtros
-            </button>
-          }
+        <div class="text-xs text-slate-500">
+          Total prendas: <span class="font-bold text-slate-800">{{ store.products().length }}</span>
         </div>
       </div>
 
@@ -408,21 +352,6 @@ export class AdminProductsComponent implements OnInit, AfterViewInit {
       { key: 'price', label: 'Precio', align: 'right', cellTemplate: this.priceTpl },
       { key: 'isActive', label: 'Visibilidad', align: 'center', cellTemplate: this.badgeTpl }
     ];
-  }
-
-  onBrandFilterChange(e: Event) {
-    const val = (e.target as HTMLSelectElement).value;
-    this.store.setBrandFilter(val);
-  }
-
-  onConditionFilterChange(e: Event) {
-    const val = (e.target as HTMLSelectElement).value;
-    this.store.setConditionFilter(val);
-  }
-
-  onStatusFilterChange(e: Event) {
-    const val = (e.target as HTMLSelectElement).value as 'all' | 'active' | 'inactive';
-    this.store.setStatusFilter(val);
   }
 
   toggleActive(prod: Product) {

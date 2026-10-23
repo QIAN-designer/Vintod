@@ -45,7 +45,7 @@ model User {
   roleId        String    @db.ObjectId
 
   // Relaciones
-  role          Role      @relation(fields: [roleId], references: [id])
+  role          Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
   products      Product[] @relation("SellerProducts")
 
   @@map("users")
@@ -113,9 +113,9 @@ model Product {
   brandId     String           @db.ObjectId
 
   // Relaciones
-  seller      User             @relation("SellerProducts", fields: [sellerId], references: [id])
-  category    Category         @relation(fields: [categoryId], references: [id])
-  brand       Brand            @relation(fields: [brandId], references: [id])
+  seller      User             @relation("SellerProducts", fields: [sellerId], references: [id], onDelete: Restrict)
+  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brand       Brand            @relation(fields: [brandId], references: [id], onDelete: Restrict)
   variants    ProductVariant[]
 
   @@index([status, isActive, createdAt(sort: Desc)])
