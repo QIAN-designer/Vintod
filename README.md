@@ -1,41 +1,94 @@
 # 🛍️ Vintod — Marketplace & Admin Platform
 
 Plataforma full-stack de compraventa de moda y artículos de segunda mano entre particulares inspirada en Vinted.  
-El proyecto está compuesto por un **backend robusto en Node.js, Express y MongoDB (vía Prisma ORM)** y un **frontend reactivo en Angular (Standalone Components, Signals & Tailwind CSS)** con marketplace público y un **Panel de Administración** completo.
+El sistema está construido siguiendo una **arquitectura desacoplada en capas (Layered Architecture)** en el backend y una **arquitectura modular basada en características (Feature-Based Architecture con Signals)** en el frontend.
 
 ---
 
-## 🏗️ Arquitectura General del Sistema
+## 🏗️ Arquitectura del Sistema
+
+El proyecto implementa una arquitectura moderna cliente-servidor distribuida en dos subsistemas principales:
+
+```mermaid
+flowchart TD
+    subgraph Frontend["Frontend SPA (Angular 18+)"]
+        UI["Páginas y Vistas (Standalone Components)"]
+        Store["Store Reactivo (Angular Signals)"]
+        Service["Capa de Servicios HTTP (ProductService / ApiService)"]
+        UI -->|Lee estado / Lanza acciones| Store
+        Store -->|Ejecuta peticiones| Service
+    end
+
+    subgraph Backend["Backend API REST (Node.js & Express)"]
+        Routes["Rutas y Middlewares (Zod / ErrorHandler)"]
+        Controllers["Controladores (Req / Res)"]
+        Services["Servicios (Lógica de Negocio)"]
+        Repos["Repositorios (Acceso a Datos y Mapeos)"]
+        PrismaORM["Prisma Client (Transacciones y Relaciones)"]
+        
+        Routes --> Controllers
+        Controllers --> Services
+        Services --> Repos
+        Repos --> PrismaORM
+    end
+
+    subgraph Database["Persistencia (MongoDB Replica Set rs0)"]
+        DB[(Colecciones MongoDB)]
+        PrismaORM -->|Transacciones Atómicas| DB
+    end
+
+    Service -->|HTTP REST / JSON| Routes
+```
+
+---
+
+### 📂 Estructura del Código
 
 ```text
 Vintod/
-├── backend/                   # API REST en Node.js + Express + Prisma ORM + MongoDB
+├── backend/                             # API REST en Node.js + Express + Prisma ORM + MongoDB
 │   ├── prisma/
-│   │   └── schema.prisma      # Esquema de datos relacional en MongoDB
+│   │   └── schema.prisma                # Esquema de datos, relaciones e integridad referencial
 │   ├── src/
-│   │   ├── config/            # Conexión DB y PrismaClient
-│   │   ├── ctrls/             # Controladores de la API REST
-│   │   ├── services/          # Capa de lógica de negocio
-│   │   ├── repos/             # Acceso y consultas a datos
-│   │   ├── routes/            # Definición de endpoints HTTP
-│   │   ├── schemas/           # Validaciones de esquemas (Zod)
-│   │   └── middlewares/       # Validaciones, logging, manejo de errores
-│   ├── seed.js                # Población inicial con datos realistas
+│   │   ├── config/                      # Configuración de entorno y conexión PrismaClient
+│   │   ├── ctrls/                       # Controladores HTTP (manejo de request/response)
+│   │   ├── services/                    # Capa de servicios (reglas de negocio)
+│   │   ├── repos/                       # Repositorios (consultas Prisma, transacciones atómicas y mapeos)
+│   │   ├── routes/                      # Definición de endpoints y asociación de validadores
+│   │   ├── schemas/                     # Validaciones de esquemas de entrada con Zod
+│   │   └── middlewares/                 # Validadores, registro morgan y captura centralizada de errores
+│   ├── seed.js                          # Script de población inicial con datos de prueba realistas
 │   └── package.json
 │
-├── frontend/                  # SPA Angular con Feature-Based Architecture
+├── frontend/                            # SPA Angular (Standalone Components, Signals & Tailwind CSS)
 │   ├── src/app/
-│   │   ├── core/              # Servicios singleton, stores reactivos (Signals), modelos
-│   │   ├── shared/            # Componentes reutilizables, modales, pipes
-│   │   ├── layouts/           # Layout público y layout de administración
-│   │   └── features/
-│   │       ├── products/      # Catálogo público, detalle y publicación de prendas
-│   │       └── admin/         # Módulos de administración (Prendas, Papelera, Usuarios, Marcas...)
+│   │   ├── core/                        # Núcleo del sistema (singleton)
+│   │   │   ├── models/                  # Interfaces y tipos de TypeScript (Product, User, Brand...)
+│   │   │   ├── services/                # Servicios HTTP de comunicación API (ProductService, ApiService...)
+│   │   │   ├── store/                   # Estado reactivo global (ProductsStore con Signals)
+│   │   │   └── interceptors/            # Interceptores HTTP
+│   │   ├── shared/                      # Componentes reutilizables, modales, tablas y pipes
+│   │   │   ├── components/              # TableComponent, ModalComponent, SearchBar, Badge, Skeletons...
+│   │   │   └── pipes/                   # AppCurrencyPipe, AppDatePipe
+│   │   ├── layouts/                     # PublicLayout (Marketplace) y AdminLayout (Panel de control)
+│   │   └── features/                    # Módulos por dominio de negocio
+│   │       ├── products/                # Catálogo público, detalle, creación y edición
+│   │       │   ├── pages/               # ProductListComponent, ProductDetailComponent, ProductCreatePageComponent, ProductEditPageComponent
+│   │       │   └── components/          # ProductCardComponent, ProductSkeletonComponent, ProductFormComponent
+│   │       └── admin/                   # Módulos de administración
+│   │           ├── dashboard/           # Métricas, KPIs y últimas transacciones
+│   │           ├── products/            # Gestión del catálogo (edición modal, visibilidad, borrado)
+│   │           ├── recycle-bin/         # Papelera de reciclaje y reactivación de prendas (soft delete)
+│   │           ├── brands/              # Gestión de marcas y galerías
+│   │           ├── categories/          # Árbol de categorías
+│   │           ├── conditions/          # Estados de conservación
+│   │           ├── users/               # Gestión de usuarios y moderación
+│   │           └── orders/              # Supervisión de transacciones
 │   └── package.json
 │
-├── docker-compose.yml         # Contenedor MongoDB con Replica Set habilitado
-├── .gitignore                 # Configuración de exclusión para Git/GitHub
-└── README.md                  # Documentación principal del proyecto
+├── docker-compose.yml                   # Contenedor MongoDB con Replica Set habilitado (rs0)
+├── .gitignore                           # Reglas de exclusión para Git
+└── README.md                            # Documentación integral del proyecto
 ```
 
 ---
@@ -43,33 +96,119 @@ Vintod/
 ## 🛠️ Stack Tecnológico
 
 ### Backend
-* **Entorno de ejecución:** [Node.js](https://nodejs.org/)
+* **Entorno de ejecución:** [Node.js](https://nodejs.org/) (v18+)
 * **Framework Web:** [Express.js](https://expressjs.com/)
-* **Base de Datos:** [MongoDB](https://www.mongodb.com/) (con soporte de transacciones y Replica Set `rs0`)
-* **ORM:** [Prisma ORM](https://www.prisma.io/) (con Prisma Client v5.22+)
+* **Base de Datos:** [MongoDB](https://www.mongodb.com/) (con soporte de transacciones multinivel y Replica Set `rs0`)
+* **ORM:** [Prisma ORM](https://www.prisma.io/) (v5.22+)
 * **Validación de Datos:** [Zod](https://zod.dev/)
 * **Seguridad y Utilidades:** [Helmet](https://helmetjs.github.io/), [CORS](https://www.npmjs.com/package/cors), [Morgan](https://github.com/expressjs/morgan), [dotenv](https://www.npmjs.com/package/dotenv)
 
 ### Frontend
-* **Framework:** [Angular 18/20+](https://angular.dev/) (100% Standalone Components)
-* **Gestión de Estado:** [Angular Signals](https://angular.dev/guide/signals) (estado reactivo optimista en tiempo real)
+* **Framework:** [Angular 18+](https://angular.dev/) (100% Standalone Components)
+* **Gestión de Estado:** [Angular Signals](https://angular.dev/guide/signals) (estado reactivo optimista en tiempo real con `signal`, `computed` y `update`)
 * **Estilos y Maquetación:** [Tailwind CSS](https://tailwindcss.com/)
+* **Componentes de Carga:** [ngx-skeleton-loader](https://www.npmjs.com/package/ngx-skeleton-loader) para feedback visual esqueleto durante la carga
 * **Alertas y Notificaciones:** [SweetAlert2](https://sweetalert2.github.io/)
-* **Control de Tipos:** TypeScript estricto
+* **Control de Tipos:** TypeScript estricto con soporte de `withComponentInputBinding` en enrutamiento
 
 ---
 
-## 💾 Modelo de Datos (MongoDB + Prisma)
+## 💾 Modelo de Datos e Integridad Referencial
 
-La base de datos sigue un modelo relacional normalizado:
+La base de datos sigue un modelo relacional normalizado sobre MongoDB con reglas explícitas de **integridad referencial**:
 
-1. **`Role` (`roles`):** Permisos y perfiles (`ADMIN`, `USER`, `MODERATOR`).
-2. **`User` (`users`):** Compradores, vendedores y administradores, con enlace a roles y productos.
-3. **`Category` (`categories`):** Estructura jerárquica con autorreferencia para categorías y subcategorías.
-4. **`Brand` (`brands`):** Marcas de moda (Nike, Levi's, Adidas, Zara, Vans, etc.).
-5. **`Product` (`products`):** Entidad base del catálogo, vinculada a vendedor, categoría, marca, con soporte de *soft-delete* (`deletedAt`) y visibilidad (`isActive`).
-6. **`ProductVariant` (`product_variants`):** Variantes de prenda con talla, color, estado de conservación (`condition`), precio y stock.
-7. **`ProductImage` (`product_images`):** Fotografías asociadas a variantes con indicador de portada (`isCover`) y orden.
+```mermaid
+erDiagram
+    ROLE ||--o{ USER : "tiene"
+    USER ||--o{ PRODUCT : "publica (vendedor)"
+    CATEGORY ||--o{ CATEGORY : "jerarquía (padre/hijo)"
+    CATEGORY ||--o{ PRODUCT : "clasifica"
+    BRAND ||--o{ PRODUCT : "marca"
+    PRODUCT ||--o{ PRODUCT_VARIANT : "contiene (Cascade)"
+    PRODUCT_VARIANT ||--o{ PRODUCT_IMAGE : "fotos (Cascade)"
+
+    ROLE {
+        ObjectId id PK
+        string name UK
+        string description
+        boolean isActive
+    }
+
+    USER {
+        ObjectId id PK
+        string username UK
+        string email UK
+        string password
+        string avatarUrl
+        ObjectId roleId FK
+    }
+
+    CATEGORY {
+        ObjectId id PK
+        string name
+        string slug UK
+        ObjectId parentId FK
+        boolean isActive
+    }
+
+    BRAND {
+        ObjectId id PK
+        string name UK
+        string slug UK
+        string logoUrl
+        string[] images
+        boolean isActive
+    }
+
+    PRODUCT {
+        ObjectId id PK
+        string title
+        string slug UK
+        string description
+        string status
+        boolean isActive
+        datetime deletedAt
+        ObjectId sellerId FK
+        ObjectId categoryId FK
+        ObjectId brandId FK
+    }
+
+    PRODUCT_VARIANT {
+        ObjectId id PK
+        string sku UK
+        string size
+        string color
+        string condition
+        float price
+        int stock
+        ObjectId productId FK
+    }
+
+    PRODUCT_IMAGE {
+        ObjectId id PK
+        string url
+        string altText
+        boolean isCover
+        int sortOrder
+        string entityType
+        ObjectId entityId
+        ObjectId variantId FK
+    }
+```
+
+### Reglas de Integridad Referencial Aplicadas:
+1. **Borrado en Cascada (`onDelete: Cascade`):**
+   * Al eliminar un `Product`, sus `ProductVariant` asociadas se eliminan en cascada.
+   * Al eliminar una variante, todas sus `ProductImage` se purgan automáticamente para evitar imágenes huérfanas.
+2. **Restricción de Borrado (`onDelete: Restrict`):**
+   * No se permite borrar una `Brand` o `Category` si existen prendas activas vinculadas.
+   * No se permite borrar un `User` si tiene publicaciones en el catálogo.
+3. **Persistencia Transaccional Atómica:**
+   * La creación de productos, variantes e imágenes se ejecuta dentro de un bloque **`prisma.$transaction(async tx => { ... })`**, asegurando que si algún paso falla se produzca un *rollback* completo.
+4. **Estructura del SKU:**
+   * Código de seguimiento único generado automáticamente con el formato: `SKU-[SLUG_DEL_PRODUCTO]-[INDICE_VARIANTE]`.
+5. **Borrado Lógico (*Soft Delete*):**
+   * Las bajas de prendas establecen la marca temporal `deletedAt`, manteniendo la integridad histórica y permitiendo su reactivación instantánea desde la papelera.
 
 ---
 
@@ -77,20 +216,20 @@ La base de datos sigue un modelo relacional normalizado:
 
 ### 1. Prerrequisitos
 * [Node.js](https://nodejs.org/) (v18+)
-* [Docker](https://www.docker.com/) y Docker Compose (para levantar MongoDB con Replica Set) o una instancia activa de MongoDB.
+* [Docker](https://www.docker.com/) y Docker Compose (o una instancia local/remota de MongoDB con Replica Set habilitado).
 
-### 2. Iniciar la Base de Datos con Docker
+### 2. Iniciar MongoDB con Replica Set
 Desde la raíz del proyecto:
 ```bash
 docker compose up -d
 ```
-> Esto iniciará un contenedor MongoDB en el puerto `27017` con el replica set `rs0` listo para Prisma.
+> Esto iniciará un contenedor MongoDB en el puerto `27017` con el replica set `rs0` requerido por las transacciones de Prisma.
 
 ---
 
 ### 3. Configuración y Arranque del Backend
 
-1. Entra a la carpeta `backend`:
+1. Entra al directorio `backend`:
    ```bash
    cd backend
    ```
@@ -98,34 +237,33 @@ docker compose up -d
    ```bash
    npm install
    ```
-3. Configura el archivo `.env` (puedes copiar `.env.example`):
+3. Configura el archivo `.env`:
    ```ini
    PORT=3000
    MONGODB_URI=mongodb://admin:erestonto@127.0.0.1:27017/vintod_db?authSource=admin&replicaSet=rs0&directConnection=true
    DATABASE_URL=mongodb://admin:erestonto@127.0.0.1:27017/vintod_db?authSource=admin&replicaSet=rs0&directConnection=true
    ```
-4. Sincroniza el esquema con MongoDB y genera el cliente Prisma:
+4. Sincroniza el esquema e inicializa el cliente Prisma:
    ```bash
    npx prisma generate
    npx prisma db push
    ```
-5. Poblar la base de datos con registros iniciales de prueba:
+5. Poblar la base de datos con datos de prueba:
    ```bash
    npm run seed
-   # o: node seed.js
    ```
 6. Inicia el servidor backend en modo desarrollo:
    ```bash
    npm run dev
    ```
-   * El backend estará escuchando en: `http://localhost:3000`
-   * API de productos: `http://localhost:3000/api/products`
+   * Servidor escuchando en: `http://localhost:3000`
+   * API base: `http://localhost:3000/api/products`
 
 ---
 
 ### 4. Configuración y Arranque del Frontend
 
-1. En una nueva terminal, entra a la carpeta `frontend`:
+1. En una nueva terminal, entra al directorio `frontend`:
    ```bash
    cd frontend
    ```
@@ -136,9 +274,8 @@ docker compose up -d
 3. Inicia la aplicación Angular:
    ```bash
    npm start
-   # o: npx ng serve
    ```
-4. Abre el navegador en:
+4. Accede desde tu navegador:
    * **Marketplace Público:** [http://localhost:4200](http://localhost:4200)
    * **Panel de Administración:** [http://localhost:4200/admin](http://localhost:4200/admin)
 
@@ -147,37 +284,33 @@ docker compose up -d
 ## 🎯 Funcionalidades Principales
 
 ### 🛒 Marketplace Público
-* **Catálogo de Prendas:** Exploración de artículos activos y visibles en tiempo real.
-* **Filtros Dinámicos:** Búsqueda por texto, marcas, categorías y rangos de precio.
-* **Detalle de Artículo:** Visualización de imágenes, tallas, estado de conservación, vendedor y precios.
-* **Publicación de Artículos:** Formulario validado para publicar nuevas prendas con asignación de características.
+* **Catálogo Reactivo:** Exploración de prendas en tiempo real con carga diferida y *Skeleton Cards* animadas (`app-product-skeleton`).
+* **Detalle de Artículo:** Visualización completa con imágenes reales de la base de datos, tallas, estado de conservación y vendedor.
+* **Publicación y Edición (`ProductCreatePageComponent` & `ProductEditPageComponent`):** Formulario modularizado reutilizable (`ProductFormComponent`) con soporte para visibilidad y validación reactiva de campos.
 
 ### 🛡️ Panel de Administración (`/admin`)
-* **Gestión de Prendas (`/admin/products`):** Auditoría del catálogo, activación/desactivación instantánea (`isActive`), edición y borrado lógico.
-* **Papelera y Reactivación (`/admin/recycle-bin`):** Listado exclusivo de artículos con `deletedAt ≠ null`, con opción de **Reactivar Prenda** en un clic.
-* **Gestión de Marcas (`/admin/brands`):** CRUD completo y moderación de marcas del catálogo.
-* **Gestión de Categorías (`/admin/categories`):** Estructura y control de visibilidad del árbol de categorías.
-* **Estados de Conservación (`/admin/conditions`):** Configuración de etiquetas de estado ("Nuevo con etiquetas", "Muy bueno", "Bueno", etc.).
-* **Usuarios y Vendedores (`/admin/users`):** Control de perfiles, permisos por rol y moderación de cuentas.
-* **Pedidos y Transacciones (`/admin/orders`):** Supervisión de ventas entre particulares y estados de entrega.
+* **Dashboard (`/admin`):** KPIs globales, valor total del catálogo y tabla rápida de moderación.
+* **Gestión de Prendas (`/admin/products`):** Auditoría del catálogo, activación/desactivación instantánea (`isActive`), edición modal con switch de visibilidad y borrado lógico.
+* **Papelera y Reactivación (`/admin/recycle-bin`):** Visualización de artículos eliminados (`deletedAt ≠ null`) con restauración instantánea al catálogo activo.
+* **Marcas y Categorías:** Moderación con soporte para banners, URLs de logos y jerarquías.
 
 ---
 
 ## 📡 Endpoints de la API REST
 
-| Método | Endpoint | Descripción |
-|---|---|---|
-| `GET` | `/api/products` | Obtener todos los productos activos (no eliminados) |
-| `GET` | `/api/products/deleted` | Obtener productos eliminados en papelera (`deletedAt ≠ null`) |
-| `GET` | `/api/products/:id` | Obtener el detalle de un producto por ID |
-| `GET` | `/api/products/slug/:slug` | Obtener el detalle de un producto por su slug único |
-| `POST` | `/api/products` | Crear un nuevo producto con variantes |
-| `PUT` | `/api/products/:id` | Actualización completa de producto y variante |
-| `PATCH` | `/api/products/:id` | Actualización parcial de producto |
-| `PATCH` | `/api/products/:id/activate` | Activar visibilidad (`isActive: true`) |
-| `PATCH` | `/api/products/:id/deactivate` | Desactivar visibilidad (`isActive: false`) |
-| `DELETE` | `/api/products/:id` | Borrado lógico (*Soft delete*, asigna `deletedAt`) |
-| `POST` | `/api/products/:id/restore` | Restaurar prenda eliminada (`deletedAt: null`) |
+| Método | Endpoint | Descripción | Validación Zod |
+|---|---|---|---|
+| `GET` | `/api/products` | Obtener todos los productos activos (no eliminados) | — |
+| `GET` | `/api/products/deleted` | Obtener productos en papelera (`deletedAt ≠ null`) | — |
+| `GET` | `/api/products/:id` | Obtener detalle de prenda por ObjectId | `idParamSchema` |
+| `GET` | `/api/products/slug/:slug` | Obtener detalle de prenda por slug único | `slugParamSchema` |
+| `POST` | `/api/products` | Crear prenda con variante e imágenes (Transaccional) | `createProductSchema` |
+| `PUT` | `/api/products/:id` | Actualización completa de producto y variante | `updateProductSchema` |
+| `PATCH` | `/api/products/:id` | Actualización parcial de producto | `updateProductSchema` |
+| `PATCH` | `/api/products/:id/activate` | Activar visibilidad (`isActive: true`) | `idParamSchema` |
+| `PATCH` | `/api/products/:id/deactivate` | Pausar/ocultar visibilidad (`isActive: false`) | `idParamSchema` |
+| `DELETE` | `/api/products/:id` | Borrado lógico (*Soft delete*, asigna `deletedAt`) | `idParamSchema` |
+| `POST` | `/api/products/:id/restore` | Restaurar prenda eliminada (`deletedAt: null`) | `idParamSchema` |
 
 ---
 
@@ -186,15 +319,14 @@ docker compose up -d
 ### Backend
 * `npm start`: Inicia el servidor en producción.
 * `npm run dev`: Inicia el servidor con recarga en caliente (`node --watch`).
-* `npm run seed`: Limpia y puebla la base de datos con datos de prueba.
+* `npm run seed`: Limpia y puebla la base de datos con colecciones iniciales de prueba.
 
 ### Frontend
 * `npm start`: Inicia el servidor de desarrollo de Angular en `http://localhost:4200`.
-* `npm run build`: Compila el frontend optimizado para producción en `dist/vintod-frontend`.
+* `npm run build`: Compila la aplicación optimizada para producción en `dist/vintod-frontend`.
 
 ---
 
 ## 📄 Licencia
 
 Proyecto con fines formativos y académicos para el ciclo de **Desarrollo de Aplicaciones Web (DAW)**.
-
