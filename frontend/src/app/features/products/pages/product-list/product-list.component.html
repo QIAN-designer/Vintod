@@ -1,0 +1,486 @@
+<div class="min-h-screen bg-surface font-body-md text-on-surface flex flex-col">
+  <!-- Top Navigation Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="max-w-[1280px] mx-auto px-margin-desktop flex flex-col justify-between py-space-xs">
+      <!-- Main Row -->
+      <div class="flex items-center justify-between gap-space-lg pt-space-xs">
+        <!-- Logo -->
+        <a routerLink="/" class="flex items-center gap-2 shrink-0">
+          <span class="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-on-primary font-bold shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+          </span>
+          <span class="font-headline-md text-headline-md tracking-tight text-primary font-extrabold">Vintod</span>
+        </a>
+
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-2xl px-space-sm">
+          <div class="relative flex items-center w-full bg-surface-container-low rounded-full px-space-md py-1.5 focus-within:ring-2 focus-within:ring-primary-container transition-all">
+            <span class="material-symbols-outlined text-outline mr-2 text-[20px]">search</span>
+            <input
+              type="text"
+              [value]="store.searchFilter()"
+              (input)="onSearchInput($event)"
+              placeholder="Buscar ropa, marcas o artículos..."
+              class="w-full bg-transparent border-none outline-none font-body-md text-body-md text-on-surface placeholder:text-outline"
+            />
+            <button
+              type="button"
+              (click)="scrollToFeed()"
+              class="flex items-center gap-1 bg-surface-container-highest px-3 py-1 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors shrink-0"
+            >
+              <span>Artículos</span>
+              <span class="material-symbols-outlined text-[16px]">expand_more</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden lg:flex items-center gap-1 shrink-0">
+          <a routerLink="/" class="px-space-md py-space-xs bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded-full transition-all">
+            Explorar
+          </a>
+          <a routerLink="/admin/products" class="px-space-md py-space-xs font-label-lg text-label-lg text-primary hover:bg-surface-container-low rounded-full transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+            <span>Panel Admin</span>
+          </a>
+        </nav>
+
+        <!-- CTA & User Avatar -->
+        <div class="flex items-center gap-space-md shrink-0">
+          <a
+            routerLink="/products/new"
+            class="flex items-center gap-1.5 bg-secondary-container text-on-secondary-container px-space-lg py-2 rounded-full font-label-lg text-label-lg shadow-sm hover:opacity-95 active:scale-95 transition-all"
+          >
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            <span>¡Vender ahora!</span>
+          </a>
+
+          <div class="hidden sm:flex items-center gap-2 pl-space-xs">
+            <div class="relative">
+              <div class="w-8 h-8 rounded-full bg-surface-container-highest text-primary font-bold flex items-center justify-center text-xs">
+                VM
+              </div>
+              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-secondary rounded-full ring-2 ring-surface"></span>
+            </div>
+            <span class="font-label-md text-label-md text-on-surface hidden xl:inline-block">Vendedor</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Pills Navigation Row -->
+      <div class="flex items-center gap-space-lg overflow-x-auto py-2 scrollbar-none">
+        @for (cat of categories; track cat.id) {
+          <button
+            type="button"
+            (click)="selectCategory(cat.name)"
+            class="font-label-md text-label-md transition-colors whitespace-nowrap cursor-pointer"
+            [class.text-primary]="store.categoryFilter() === cat.name"
+            [class.font-bold]="store.categoryFilter() === cat.name"
+            [class.text-on-surface-variant]="store.categoryFilter() !== cat.name"
+            [class.hover:text-primary]="store.categoryFilter() !== cat.name"
+          >
+            {{ cat.name }}
+          </button>
+        }
+        <button
+          type="button"
+          (click)="selectCategory('')"
+          class="font-label-md text-label-md text-primary font-bold whitespace-nowrap hover:text-primary-container transition-colors"
+        >
+          Ver todo el catálogo
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Space -->
+  <main class="w-full pt-32 bg-surface flex-1">
+    <div class="max-w-[1280px] mx-auto px-margin-desktop py-space-lg">
+      <div class="flex flex-col w-full">
+
+        <!-- Top Ambient Banner & Eco Stats -->
+        <section class="relative w-full rounded-2xl bg-gradient-to-r from-surface-container via-surface-container-low to-primary-fixed/30 p-space-lg md:p-space-xl overflow-hidden shadow-sm mb-space-xl">
+          <div class="absolute -right-16 -bottom-16 w-96 h-96 rounded-full bg-primary-container/10 blur-3xl pointer-events-none"></div>
+          <div class="absolute right-1/4 -top-12 w-64 h-64 rounded-full bg-secondary-fixed/40 blur-2xl pointer-events-none"></div>
+
+          <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+            <div class="lg:col-span-7 flex flex-col gap-space-md">
+              <div class="inline-flex items-center gap-2 bg-surface px-space-md py-1 rounded-full shadow-sm w-fit">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
+                <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Moda Circular Verificada</span>
+              </div>
+              <h1 class="font-display-hero text-display-hero text-on-surface leading-tight tracking-tight">
+                Dale una segunda vida a tu ropa favorita.
+              </h1>
+              <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                Compra y vende moda de segunda mano sin comisiones de venta. Encuentra tesoros de archivo, marcas deseadas y reduce tu huella textil con envíos locales seguros.
+              </p>
+              <div class="flex flex-wrap items-center gap-space-md pt-space-xs">
+                <a
+                  routerLink="/products/new"
+                  class="bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg px-space-xl py-3 rounded-full transition-all shadow-md active:scale-95 flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                  <span>Subir prendas gratis</span>
+                </a>
+                <button
+                  type="button"
+                  (click)="scrollToFeed()"
+                  class="bg-surface hover:bg-surface-container-highest text-on-surface font-label-lg text-label-lg px-space-lg py-3 rounded-full transition-all shadow-sm flex items-center gap-2"
+                >
+                  <span>Explorar novedades de hoy</span>
+                  <span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Impact Metric Card -->
+            <div class="lg:col-span-5 flex flex-col gap-space-md">
+              <div class="bg-surface/95 backdrop-blur-md rounded-2xl p-space-lg shadow-sm flex flex-col gap-space-sm relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                  <span class="font-label-md text-label-md text-on-surface-variant">Impacto colectivo en tiempo real</span>
+                  <span class="material-symbols-outlined text-secondary text-[22px]">eco</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span class="font-display-hero text-headline-lg text-secondary font-extrabold tracking-tight">
+                    {{ ecoCounter().toLocaleString('es-ES') }}
+                  </span>
+                  <span class="font-headline-sm text-headline-sm text-on-surface">kg de CO₂</span>
+                </div>
+                <p class="font-body-sm text-body-sm text-outline">
+                  Ahorrados esta semana por intercambios y compras de segunda mano en Vintod España.
+                </p>
+                <div class="w-full bg-surface-container rounded-full h-2 mt-space-xs overflow-hidden">
+                  <div class="bg-secondary h-full rounded-full w-[78%] transition-all duration-1000"></div>
+                </div>
+                <div class="flex justify-between items-center text-outline font-label-md text-label-md pt-1">
+                  <span>Objetivo mensual: 18.000 kg</span>
+                  <span class="text-secondary font-bold">78% alcanzado</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-space-md bg-secondary-fixed/50 p-space-sm rounded-xl px-space-md">
+                <span class="material-symbols-outlined text-on-secondary-fixed text-[24px]">verified</span>
+                <span class="font-body-sm text-body-sm text-on-secondary-fixed font-medium">
+                  Tarifa plana de envío asegurado con recogida en punto pack desde solo <strong>2,50 €</strong>.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Categories Visual Cards -->
+        <section class="w-full mb-space-xl">
+          <div class="flex items-center justify-between mb-space-md">
+            <div>
+              <h2 class="font-headline-md text-headline-md text-on-surface font-bold">Explora por categorías clave</h2>
+              <p class="font-body-sm text-body-sm text-outline">Prendas revisadas por la comunidad y listas para enviar</p>
+            </div>
+            <button
+              type="button"
+              (click)="selectCategory('')"
+              class="font-label-lg text-label-lg text-primary hover:text-primary-container transition-colors flex items-center gap-1"
+            >
+              <span>Ver catálogo completo</span>
+              <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-space-md">
+            @for (cat of categories; track cat.id) {
+              <div
+                (click)="selectCategory(cat.name)"
+                class="group flex flex-col bg-surface-container-low hover:bg-surface-container rounded-2xl overflow-hidden p-space-xs transition-all shadow-sm hover:shadow-md cursor-pointer"
+              >
+                <div class="aspect-square w-full rounded-xl overflow-hidden bg-surface-container-highest relative">
+                  <img
+                    [src]="cat.img"
+                    [alt]="cat.name"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div class="py-space-sm px-space-xs text-center">
+                  <span class="font-label-lg text-label-lg text-on-surface group-hover:text-primary transition-colors block">
+                    {{ cat.name }}
+                  </span>
+                  <span class="font-body-sm text-body-sm text-outline">{{ cat.count }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Filter & Sorting Sticky Command Center -->
+        <section class="w-full sticky top-28 z-40 bg-surface/95 backdrop-blur-md py-space-sm mb-space-lg" id="feed-grid">
+          <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md bg-surface-container-low p-space-sm rounded-2xl shadow-sm">
+            <!-- Filter Chips -->
+            <div class="flex items-center gap-space-xs overflow-x-auto scrollbar-none py-1">
+              <button
+                type="button"
+                (click)="selectCategory('')"
+                class="flex items-center gap-1.5 px-space-md py-2 rounded-full font-label-md text-label-md shadow-sm shrink-0 transition-colors"
+                [class.bg-primary-container]="!store.categoryFilter()"
+                [class.text-on-primary]="!store.categoryFilter()"
+                [class.bg-surface]="store.categoryFilter()"
+                [class.text-on-surface-variant]="store.categoryFilter()"
+              >
+                <span>Categoría: {{ store.categoryFilter() || 'Todo' }}</span>
+                @if (store.categoryFilter()) {
+                  <span class="material-symbols-outlined text-[16px]">close</span>
+                }
+              </button>
+
+              <!-- Brand Filter Pill -->
+              <div class="relative shrink-0">
+                <select
+                  [value]="store.brandFilter()"
+                  (change)="onBrandChange($event)"
+                  class="appearance-none bg-surface text-on-surface-variant hover:bg-surface-container hover:text-on-surface pl-space-md pr-7 py-2 rounded-full font-label-md text-label-md cursor-pointer border-none outline-none shadow-xs"
+                >
+                  <option value="">Todas las marcas</option>
+                  <option value="Nike">Nike</option>
+                  <option value="Levi's">Levi's</option>
+                  <option value="Zara">Zara</option>
+                  <option value="Carhartt">Carhartt</option>
+                  <option value="Sézane">Sézane</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-2 top-2.5 text-[16px] text-outline pointer-events-none">keyboard_arrow_down</span>
+              </div>
+
+              <!-- Condition Filter Pill -->
+              <div class="relative shrink-0">
+                <select
+                  [value]="store.conditionFilter()"
+                  (change)="onConditionChange($event)"
+                  class="appearance-none bg-surface text-on-surface-variant hover:bg-surface-container hover:text-on-surface pl-space-md pr-7 py-2 rounded-full font-label-md text-label-md cursor-pointer border-none outline-none shadow-xs"
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="Nuevo con etiquetas">Nuevo con etiquetas</option>
+                  <option value="Muy bueno">Muy bueno</option>
+                  <option value="Bueno">Bueno</option>
+                  <option value="Satisfactorio">Satisfactorio</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-2 top-2.5 text-[16px] text-outline pointer-events-none">keyboard_arrow_down</span>
+              </div>
+
+              <!-- Reset Filters -->
+              @if (store.searchFilter() || store.categoryFilter() || store.brandFilter() || store.conditionFilter()) {
+                <button
+                  type="button"
+                  (click)="resetFilters()"
+                  class="text-primary hover:text-primary-container font-label-md text-label-md px-space-sm underline shrink-0 cursor-pointer"
+                >
+                  Restablecer
+                </button>
+              }
+            </div>
+
+            <!-- Results Counter & Live Catalog State -->
+            <div class="flex items-center justify-end gap-space-sm shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0">
+              <span class="font-label-md text-label-md text-outline">
+                Prendas disponibles: <strong class="text-on-surface">{{ store.filteredProducts().length }}</strong>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Product Feed Grid Section (Conectado al backend) -->
+        <section class="w-full mb-space-xl">
+          @if (store.error()) {
+            <app-error-state [message]="store.error()!" (retry)="loadProducts()"></app-error-state>
+          } @else if (store.loading()) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-space-lg">
+              @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+                <app-product-skeleton></app-product-skeleton>
+              }
+            </div>
+          } @else {
+            @if (store.filteredProducts().length === 0) {
+              <app-empty-state></app-empty-state>
+            } @else {
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-space-lg">
+                @for (product of store.filteredProducts(); track product._id || product.id) {
+                  <app-product-card [product]="product"></app-product-card>
+                }
+              </div>
+            }
+          }
+        </section>
+
+        <!-- Featured Wardrobes / Sellers Section -->
+        <section class="w-full bg-surface-container-low rounded-2xl p-space-lg md:p-space-xl mb-space-xl">
+          <div class="flex flex-col md:flex-row md:items-end justify-between mb-space-lg gap-space-sm">
+            <div>
+              <div class="inline-flex items-center gap-1 text-secondary font-label-md text-label-md uppercase tracking-wider mb-1">
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                Vendedoras Pro & Coleccionistas
+              </div>
+              <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">
+                Miembros destacados y sus armarios
+              </h2>
+              <p class="font-body-md text-body-md text-on-surface-variant">
+                Sigue a perfiles con alta reputación y estilo curado para no perderte sus nuevos lanzamientos.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="font-label-lg text-label-lg text-primary hover:text-primary-container transition-colors flex items-center gap-1 shrink-0"
+            >
+              <span>Descubrir más armarios</span>
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+            @for (seller of featuredSellers; track seller.id) {
+              <div class="bg-surface rounded-2xl p-space-md shadow-sm flex flex-col justify-between gap-space-md">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="relative">
+                      <img [src]="seller.avatar" [alt]="seller.name" class="w-12 h-12 rounded-full object-cover" />
+                      <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-secondary ring-2 ring-surface"></span>
+                    </div>
+                    <div>
+                      <div class="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">{{ seller.name }}</div>
+                      <div class="flex items-center gap-1 text-outline font-label-md text-label-md">
+                        <span class="material-symbols-outlined text-[14px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="text-on-surface font-semibold">{{ seller.rating }}</span>
+                        <span>({{ seller.sales }} ventas)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="toggleFollow(seller)"
+                    class="px-space-md py-1.5 rounded-full font-label-md text-label-md transition-all active:scale-95"
+                    [class.bg-surface-container-high]="!seller.isFollowing"
+                    [class.text-on-surface]="!seller.isFollowing"
+                    [class.bg-secondary]="seller.isFollowing"
+                    [class.text-on-secondary]="seller.isFollowing"
+                  >
+                    {{ seller.isFollowing ? 'Siguiendo' : 'Seguir' }}
+                  </button>
+                </div>
+                <p class="font-body-sm text-body-sm text-on-surface-variant italic">
+                  "{{ seller.bio }}"
+                </p>
+                <div class="grid grid-cols-3 gap-2">
+                  @for (img of seller.previewImgs; track img) {
+                    <div class="aspect-square rounded-xl overflow-hidden bg-surface-container">
+                      <img [src]="img" alt="Prenda" class="w-full h-full object-cover hover:scale-105 transition-transform" />
+                    </div>
+                  }
+                </div>
+                <div class="flex items-center justify-between pt-space-xs text-outline font-label-md text-label-md">
+                  <span>Envía en menos de 24h</span>
+                  <span class="text-primary font-bold">{{ seller.itemsCount }} disponibles</span>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Trust Features Banner -->
+        <section class="w-full rounded-2xl bg-surface-container p-space-lg md:p-space-xl mb-space-lg shadow-sm">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg items-center">
+            <div class="flex items-start gap-space-md">
+              <div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shrink-0">
+                <span class="material-symbols-outlined text-[24px]">verified_user</span>
+              </div>
+              <div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-1">
+                  100% Reembolso garantizado
+                </h3>
+                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Tu dinero se retiene de forma segura hasta que recibes tu prenda y confirmas que se ajusta a la descripción.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-space-md">
+              <div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed shrink-0">
+                <span class="material-symbols-outlined text-[24px]">local_shipping</span>
+              </div>
+              <div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-1">
+                  Envíos asegurados desde 2,50 €
+                </h3>
+                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Seguimiento punto a punto integrado con Correos, InPost y SEUR. Seguro por pérdida o daño incluido.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-space-md">
+              <div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed shrink-0">
+                <span class="material-symbols-outlined text-[24px]">support_agent</span>
+              </div>
+              <div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-1">
+                  Atención al cliente 24/7
+                </h3>
+                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Equipo dedicado para mediaciones, devoluciones rápidas y resolución de incidencias en español.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Public Footer -->
+  <footer class="w-full bg-surface-container-low mt-space-xl py-space-xl">
+    <div class="max-w-[1280px] mx-auto px-margin-desktop">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-space-xl mb-space-xl">
+        <div>
+          <h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">Comunidad Vintod</h4>
+          <ul class="space-y-space-sm">
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/">Sobre Vintod</a></li>
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/">Sostenibilidad e Impacto</a></li>
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/admin/products">Panel de Control</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">Comprar y Vender</h4>
+          <ul class="space-y-space-sm">
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/products/new">Cómo vender</a></li>
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/">Tarifas de envío</a></li>
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/">Protección al comprador</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">Soporte y Ayuda</h4>
+          <ul class="space-y-space-sm">
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/">Ayuda y Centro de soporte</a></li>
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/">Guía de seguridad</a></li>
+            <li class="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors"><a routerLink="/">Normas de la comunidad</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-headline-sm text-headline-sm text-on-surface mb-space-md">Región & Idioma</h4>
+          <div class="flex items-center gap-space-sm p-space-sm bg-surface rounded-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] mb-space-sm">
+            <span class="material-symbols-outlined text-outline text-[20px]">language</span>
+            <span class="font-label-md text-label-md text-on-surface">España (ES) · EUR (€)</span>
+          </div>
+          <p class="font-body-sm text-body-sm text-outline">Moda circular verificada y envíos neutros en carbono en toda la Península.</p>
+        </div>
+      </div>
+
+      <div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md border-t border-slate-200">
+        <div class="flex items-center gap-2">
+          <span class="font-headline-sm text-headline-sm text-primary font-bold">Vintod</span>
+          <span class="font-body-sm text-body-sm text-outline">© 2026 Vintod Marketplace. Todos los derechos reservados.</span>
+        </div>
+        <div class="flex items-center gap-space-lg font-body-sm text-body-sm text-outline">
+          <a class="hover:text-on-surface transition-colors" routerLink="/">Privacidad</a>
+          <a class="hover:text-on-surface transition-colors" routerLink="/">Términos y Condiciones</a>
+          <a class="hover:text-on-surface transition-colors" routerLink="/">Aviso de Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+

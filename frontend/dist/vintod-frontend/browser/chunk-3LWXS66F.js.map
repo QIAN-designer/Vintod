@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/layouts/public-layout/public-layout.component.ts"],
+  "sourcesContent": ["import { Component } from '@angular/core';\nimport { RouterOutlet } from '@angular/router';\n\n@Component({\n  selector: 'app-public-layout',\n  standalone: true,\n  imports: [RouterOutlet],\n  template: `\n    <div class=\"min-h-screen flex flex-col bg-surface\">\n      <main class=\"flex-1 w-full\">\n        <router-outlet></router-outlet>\n      </main>\n    </div>\n  `\n})\nexport class PublicLayoutComponent {}\n"],
+  "mappings": ";;;;;;;;;;;;;;AAeM,IAAO,wBAAP,MAAO,uBAAqB;;;uCAArB,wBAAqB;IAAA;EAAA;;yEAArB,wBAAqB,WAAA,CAAA,CAAA,mBAAA,CAAA,GAAA,YAAA,MAAA,UAAA,CAAA,6BAAA,GAAA,OAAA,GAAA,MAAA,GAAA,QAAA,CAAA,CAAA,GAAA,gBAAA,QAAA,YAAA,YAAA,GAAA,CAAA,GAAA,UAAA,QAAA,CAAA,GAAA,UAAA,SAAA,+BAAA,IAAA,KAAA;AAAA,UAAA,KAAA,GAAA;AAP9B,QAAA,yBAAA,GAAA,OAAA,CAAA,EAAmD,GAAA,QAAA,CAAA;AAE/C,QAAA,oBAAA,GAAA,eAAA;AACF,QAAA,uBAAA,EAAO;;sBALD,YAAY,GAAA,eAAA,EAAA,CAAA;EAAA;;;6EASX,uBAAqB,EAAA,WAAA,yBAAA,UAAA,gEAAA,YAAA,GAAA,CAAA;AAAA,GAAA;",
+  "names": []
+}

@@ -1,0 +1,63 @@
+<div class="group bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer" [routerLink]="['/products', product.slug || product._id]">
+  <!-- Seller Header -->
+  <div class="p-space-sm flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center text-[11px] font-bold text-on-primary-fixed uppercase overflow-hidden shrink-0">
+        {{ (product.sellerName || 'U').charAt(0) }}
+      </div>
+      <span class="font-label-md text-label-md text-on-surface font-medium truncate max-w-[120px]">
+        {{ '@' + (product.sellerName || 'vendedor') }}
+      </span>
+    </div>
+    <div class="flex items-center gap-0.5 text-tertiary font-label-md text-label-md">
+      <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">star</span>
+      <span>4.9</span>
+    </div>
+  </div>
+
+  <!-- Image & Status Badge -->
+  <div class="relative aspect-[3/4] w-full bg-surface-container overflow-hidden">
+    <img
+      [src]="product.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&auto=format&fit=crop&q=80'"
+      [alt]="product.title"
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+    />
+    <span class="absolute bottom-2.5 left-2.5 bg-secondary-fixed/90 text-on-secondary-fixed font-label-md text-label-md px-2.5 py-1 rounded-full shadow-sm backdrop-blur-sm">
+      {{ product.condition || 'Muy bueno' }}
+    </span>
+    <button
+      type="button"
+      (click)="toggleFavorite($event)"
+      class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-surface/85 backdrop-blur-md flex items-center justify-center shadow-sm transition-colors hover:text-error"
+      [class.text-error]="isFavorite()"
+      [class.text-outline]="!isFavorite()"
+    >
+      <span class="material-symbols-outlined text-[18px]" [style.font-variation-settings]="fontVariationSettings()">favorite</span>
+    </button>
+  </div>
+
+  <!-- Card Body -->
+  <div class="p-space-md flex flex-col gap-1">
+    <div class="flex items-baseline justify-between">
+      <span class="font-price-display text-price-display text-on-surface font-extrabold">
+        {{ product.price | currency:'EUR':'symbol':'1.2-2' }}
+      </span>
+      <span class="font-label-md text-label-md text-outline bg-surface-container px-2 py-0.5 rounded">
+        {{ product.size }}
+      </span>
+    </div>
+    <div class="flex items-center gap-1 text-secondary font-label-md text-label-md">
+      <span class="material-symbols-outlined text-[15px]">verified_user</span>
+      <span>Incluye protección al comprador</span>
+    </div>
+    <div class="flex items-center justify-between pt-1">
+      <span class="font-label-lg text-label-lg text-on-surface-variant font-medium truncate max-w-[150px]">
+        {{ product.brand || 'Vintage' }}
+      </span>
+      <div class="flex items-center gap-1 text-outline font-label-md text-label-md">
+        <span class="material-symbols-outlined text-[14px]">favorite_border</span>
+        <span>{{ favCount() }}</span>
+      </div>
+    </div>
+  </div>
+</div>

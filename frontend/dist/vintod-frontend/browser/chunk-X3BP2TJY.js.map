@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/features/products/pages/product-create/product-create.component.ts"],
+  "sourcesContent": ["import { Component } from '@angular/core';\nimport { ProductFormComponent } from '../product-form/product-form.component';\n\n@Component({\n  selector: 'app-product-create-page',\n  standalone: true,\n  imports: [ProductFormComponent],\n  template: `\n    <div class=\"py-6\">\n      <app-product-form mode=\"create\"></app-product-form>\n    </div>\n  `\n})\nexport class ProductCreatePageComponent {}\n\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;AAaM,IAAO,6BAAP,MAAO,4BAA0B;;;uCAA1B,6BAA0B;IAAA;EAAA;;yEAA1B,6BAA0B,WAAA,CAAA,CAAA,yBAAA,CAAA,GAAA,YAAA,MAAA,UAAA,CAAA,6BAAA,GAAA,OAAA,GAAA,MAAA,GAAA,QAAA,CAAA,CAAA,GAAA,MAAA,GAAA,CAAA,QAAA,QAAA,CAAA,GAAA,UAAA,SAAA,oCAAA,IAAA,KAAA;AAAA,UAAA,KAAA,GAAA;AALnC,QAAA,yBAAA,GAAA,OAAA,CAAA;AACE,QAAA,oBAAA,GAAA,oBAAA,CAAA;AACF,QAAA,uBAAA;;sBAJQ,oBAAoB,GAAA,eAAA,EAAA,CAAA;EAAA;;;6EAOnB,4BAA0B,EAAA,WAAA,8BAAA,UAAA,oFAAA,YAAA,GAAA,CAAA;AAAA,GAAA;",
+  "names": []
+}

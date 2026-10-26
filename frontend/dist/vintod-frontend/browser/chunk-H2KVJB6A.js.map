@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/shared/pipes/currency.pipe.ts"],
+  "sourcesContent": ["import { Pipe, PipeTransform } from '@angular/core';\r\n\r\n@Pipe({\r\n  name: 'appCurrency',\r\n  standalone: true\r\n})\r\nexport class AppCurrencyPipe implements PipeTransform {\r\n  transform(value: number | string | null | undefined, currencyCode = 'EUR'): string {\r\n    if (value === null || value === undefined || isNaN(Number(value))) {\r\n      return '0,00 €';\r\n    }\r\n    const num = Number(value);\r\n    return new Intl.NumberFormat('es-ES', {\r\n      style: 'currency',\r\n      currency: currencyCode,\r\n      minimumFractionDigits: 2,\r\n      maximumFractionDigits: 2\r\n    }).format(num);\r\n  }\r\n}\r\n\r\n"],
+  "mappings": ";;;;;AAMM,IAAO,kBAAP,MAAO,iBAAe;EAC1B,UAAU,OAA2C,eAAe,OAAK;AACvE,QAAI,UAAU,QAAQ,UAAU,UAAa,MAAM,OAAO,KAAK,CAAC,GAAG;AACjE,aAAO;IACT;AACA,UAAM,MAAM,OAAO,KAAK;AACxB,WAAO,IAAI,KAAK,aAAa,SAAS;MACpC,OAAO;MACP,UAAU;MACV,uBAAuB;MACvB,uBAAuB;KACxB,EAAE,OAAO,GAAG;EACf;;;uCAZW,kBAAe;IAAA;EAAA;;0FAAf,kBAAe,MAAA,MAAA,YAAA,KAAA,CAAA;EAAA;;",
+  "names": []
+}
