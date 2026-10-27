@@ -30,25 +30,44 @@ model Role {
 // -------------------------------------------------------------
 model User {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  username      String    @unique
   email         String    @unique
   password      String
-  avatarUrl     String?
-  bio           String?
-  city          String?
-  country       String    @default("España")
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Clave foránea Role
+  // Clave foranea Role
   roleId        String    @db.ObjectId
 
   // Relaciones
   role          Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  profile       Profile?
   products      Product[] @relation("SellerProducts")
 
   @@map("users")
+}
+
+// -------------------------------------------------------------
+// 2.1 PERFIL DE USUARIO (Datos de vendedor-comprador / comerciales)
+// -------------------------------------------------------------
+model Profile {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  username      String   @unique
+  avatarUrl     String?
+  bio           String?
+  city          String?
+  country       String   @default("España")
+  postalCode    String?
+  ratingAverage Float    @default(0)
+  ratingCount   Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relacion 1 a 1 con User
+  userId        String   @unique @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("profiles")
 }
 
 // -------------------------------------------------------------

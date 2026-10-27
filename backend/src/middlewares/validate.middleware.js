@@ -14,7 +14,11 @@ const validate = (schema) => (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === 'ZodError') {
-      const messages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+      const issues = error.issues || error.errors || [];
+      const messages = issues.map(err => {
+        const path = (err.path || []).join('.');
+        return path ? `${path}: ${err.message}` : err.message;
+      }).join(', ');
       return next(new AppError(`Datos inválidos: ${messages}`, 400));
     }
     next(error);

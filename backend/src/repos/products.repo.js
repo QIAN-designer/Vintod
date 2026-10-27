@@ -41,11 +41,15 @@ const ensureDefaultEntities = async (data = {}) => {
             }
             defaultUser = await prisma.user.create({
                 data: {
-                    username: "vintod_seller",
                     email: "seller@vintod.com",
                     password: "defaultPassword123",
-                    city: "Madrid",
                     roleId: userRole.id,
+                    profile: {
+                        create: {
+                            username: "vintod_seller",
+                            city: "Madrid",
+                        },
+                    },
                 },
             });
         }
@@ -114,7 +118,7 @@ const mapProduct = product => {
         category: category ? category.name : "",
         categoryId: product.categoryId,
         sellerId: product.sellerId,
-        sellerName: seller ? seller.username : "",
+        sellerName: seller ? (seller.profile ? seller.profile.username : (seller.username || "")) : "",
         // Relaciones completas embebidas
         variants: variants || [],
         brandInfo: brand || null,
@@ -126,7 +130,11 @@ const mapProduct = product => {
 const productInclude = {
     brand: true,
     category: true,
-    seller: true,
+    seller: {
+        include: {
+            profile: true,
+        },
+    },
     variants: {
         include: {
             images: true,

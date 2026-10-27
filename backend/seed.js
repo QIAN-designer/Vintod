@@ -1,4 +1,4 @@
-require("dotenv").config();
+﻿require("dotenv").config();
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -52,30 +52,48 @@ const seedDatabase = async () => {
             data: { name: "MODERATOR", description: "Moderador de catálogo" },
         });
 
-        console.log("👤 Creando usuarios...");
+        const argon2 = require('argon2');
+        console.log("👤 Creando usuarios con contraseñas seguras Argon2 y perfiles asociados...");
+        const hashedUserPassword = await argon2.hash("password123");
+        const hashedAdminPassword = await argon2.hash("admin123");
+
         const sellerUser = await prisma.user.create({
             data: {
-                username: "carmen_vintage",
                 email: "carmen@vintod.com",
-                password: "hashedpassword123",
-                avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-                bio: "Amante de la moda vintage y prendas únicas de los 90.",
-                city: "Madrid",
-                country: "España",
+                password: hashedUserPassword,
                 roleId: userRole.id,
+                profile: {
+                    create: {
+                        username: "carmen_vintage",
+                        avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                        bio: "Amante de la moda vintage y prendas únicas de los 90.",
+                        city: "Madrid",
+                        country: "España",
+                        postalCode: "28001",
+                        ratingAverage: 4.9,
+                        ratingCount: 15,
+                    },
+                },
             },
         });
 
         const adminUser = await prisma.user.create({
             data: {
-                username: "admin_vintod",
                 email: "admin@vintod.com",
-                password: "adminpassword123",
-                avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-                bio: "Administrador del sistema Vintod",
-                city: "Barcelona",
-                country: "España",
+                password: hashedAdminPassword,
                 roleId: adminRole.id,
+                profile: {
+                    create: {
+                        username: "admin_vintod",
+                        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
+                        bio: "Administrador del sistema Vintod",
+                        city: "Barcelona",
+                        country: "España",
+                        postalCode: "08001",
+                        ratingAverage: 5.0,
+                        ratingCount: 42,
+                    },
+                },
             },
         });
 

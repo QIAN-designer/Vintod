@@ -5,6 +5,9 @@ const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
 
+const authRouter = require('./routes/auth.routes');
+const usersRouter = require('./routes/users.routes');
+const profilesRouter = require('./routes/profiles.routes');
 const productsRouter = require('./routes/products.routes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
@@ -31,6 +34,9 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas base bajo /api
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/profiles', profilesRouter);
 app.use('/api/products', productsRouter);
 
 // Manejo de rutas no encontradas (404)
