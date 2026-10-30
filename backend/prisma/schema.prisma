@@ -56,7 +56,7 @@ model Profile {
   avatarUrl     String?
   bio           String?
   city          String?
-  country       String   @default("EspaÃƒÂ±a")
+  country       String   @default("EspaÃƒÆ’Ã‚Â±a")
   postalCode    String?
   ratingAverage Float    @default(0)
   ratingCount   Int      @default(0)
@@ -65,13 +65,13 @@ model Profile {
 
   // Relacion 1 a 1 con User
   userId        String   @unique @db.ObjectId
-  user          User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profiles")
 }
 
 // -------------------------------------------------------------
-// 3. CATEGORÃƒÂAS (JerarquÃƒÂ­a con autorreferencia)
+// 3. CATEGORÃƒÆ’Ã‚ÂAS (JerarquÃƒÆ’Ã‚Â­a con autorreferencia)
 // -------------------------------------------------------------
 model Category {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
@@ -82,11 +82,11 @@ model Category {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  // RelaciÃƒÂ³n reflexiva para subcategorÃƒÂ­as
+  // RelaciÃƒÆ’Ã‚Â³n reflexiva para subcategorÃƒÆ’Ã‚Â­as
   parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children  Category[] @relation("CategoryHierarchy")
 
-  // RelaciÃƒÂ³n con productos
+  // RelaciÃƒÆ’Ã‚Â³n con productos
   products  Product[]
 
   @@map("categories")
@@ -100,19 +100,19 @@ model Brand {
   name      String    @unique
   slug      String    @unique
   logoUrl   String?
-  images    String[]  // GalerÃƒÂ­a de imÃƒÂ¡genes / banners de la marca
+  images    String[]  // GalerÃƒÆ’Ã‚Â­a de imÃƒÆ’Ã‚Â¡genes / banners de la marca
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  // RelaciÃƒÂ³n con productos
+  // RelaciÃƒÆ’Ã‚Â³n con productos
   products  Product[]
 
   @@map("brands")
 }
 
 // -------------------------------------------------------------
-// 5. PRODUCTOS (Entidad Base / CatÃƒÂ¡logo Padre)
+// 5. PRODUCTOS (Entidad Base / CatÃƒÆ’Ã‚Â¡logo Padre)
 // -------------------------------------------------------------
 model Product {
   id          String           @id @default(auto()) @map("_id") @db.ObjectId
@@ -126,7 +126,7 @@ model Product {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  // Claves forÃƒÂ¡neas
+  // Claves forÃƒÆ’Ã‚Â¡neas
   sellerId    String           @db.ObjectId
   categoryId  String           @db.ObjectId
   brandId     String           @db.ObjectId
@@ -156,7 +156,7 @@ model ProductVariant {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  // Clave forÃƒÂ¡nea a Product
+  // Clave forÃƒÆ’Ã‚Â¡nea a Product
   productId   String         @db.ObjectId
 
   // Relaciones
@@ -168,7 +168,7 @@ model ProductVariant {
 }
 
 // -------------------------------------------------------------
-// 7. IMÃƒÂGENES DE PRODUCTO (ColecciÃƒÂ³n Independiente)
+// 7. IMÃƒÆ’Ã‚ÂGENES DE PRODUCTO (ColecciÃƒÆ’Ã‚Â³n Independiente)
 // -------------------------------------------------------------
 model ProductImage {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
@@ -178,11 +178,11 @@ model ProductImage {
   sortOrder   Int            @default(0)
   createdAt   DateTime       @default(now())
 
-  // Polimorfismo / IdentificaciÃƒÂ³n de entidad (ej: "PRODUCT_VARIANT", "USER", etc.)
+  // Polimorfismo / IdentificaciÃƒÆ’Ã‚Â³n de entidad (ej: "PRODUCT_VARIANT", "USER", etc.)
   entityType  String?        // Tipo de entidad asociada
   entityId    String?        @db.ObjectId // ID de la entidad asociada
 
-  // Clave forÃƒÂ¡nea a Variante
+  // Clave forÃƒÆ’Ã‚Â¡nea a Variante
   variantId   String         @db.ObjectId
 
   // Relaciones
@@ -194,7 +194,7 @@ model ProductImage {
 }
 
 // -------------------------------------------------------------
-// 8. LISTA NEGRA DE TOKENS (Logout / RevocaciÃ³n de Tokens)
+// 8. LISTA NEGRA DE TOKENS (Logout / RevocaciÃƒÂ³n de Tokens)
 // -------------------------------------------------------------
 model Backlist {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
