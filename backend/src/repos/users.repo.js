@@ -1,8 +1,13 @@
 const { prisma } = require('../config/db');
 const { userSafeSelect } = require('./auth.repo');
 
-const findAll = async ({ skip = 0, take = 20, isActive }) => {
+const findAll = async ({ skip = 0, take = 20, isActive, includeDeleted = false }) => {
   const where = {};
+  
+  if (!includeDeleted) {
+    where.OR = [{ deletedAt: null }, { deletedAt: { isSet: false } }];
+  }
+
   if (typeof isActive === 'boolean') {
     where.isActive = isActive;
   }
@@ -44,11 +49,32 @@ const updateRole = async (id, roleId) => {
   });
 };
 
-const deleteUser = async (id) => {
-  // Con integridad referencial configurada:
-  // Si tiene perfil o productos asociados, Prisma lanzará error si onDelete es Restrict
-  return await prisma.user.delete({
+/**
+ * Eliminación lógica (Soft Delete):
+ * Establece deletedAt a la fecha actual y desactiva la cuenta (isActive: false)
+ */
+const softDelete = async (id) => {
+  return await prisma.user.update({
     where: { id },
+    data: {
+      deletedAt: new Date(),
+      isActive: false,
+    },
+    select: userSafeSelect,
+  });
+};
+
+/**
+ * Restaurar usuario eliminado lógicamente:
+ * Restablece deletedAt a null y vuelve a activar la cuenta
+ */
+const restore = async (id) => {
+  return await prisma.user.update({
+    where: { id },
+    data: {
+      deletedAt: null,
+      isActive: true,
+    },
     select: userSafeSelect,
   });
 };
@@ -58,6 +84,6 @@ module.exports = {
   findById,
   updateStatus,
   updateRole,
-  deleteUser,
+  softDelete,
+  restore,
 };
-

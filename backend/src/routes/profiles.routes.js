@@ -16,7 +16,16 @@ router.get('/u/:username', validate(getByUsernameSchema), profilesCtrl.getProfil
 // Perfil por userId
 router.get('/:userId', profilesCtrl.getProfileByUserId);
 
-// Modificación de perfil protegida por ABAC (Solo el dueño o ADMIN)
+// Modificación parcial de perfil protegida por ABAC (Solo el dueño o ADMIN)
+router.patch(
+  '/:userId',
+  authenticateJWT,
+  authorizeProfileModification,
+  validate(updateProfileSchema),
+  profilesCtrl.updateProfile
+);
+
+// Mantenemos compatibilidad con PUT redirigiendo al mismo controlador
 router.put(
   '/:userId',
   authenticateJWT,
@@ -26,4 +35,3 @@ router.put(
 );
 
 module.exports = router;
-

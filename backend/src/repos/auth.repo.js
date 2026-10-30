@@ -5,6 +5,7 @@ const userSafeSelect = {
   id: true,
   email: true,
   isActive: true,
+  deletedAt: true,
   roleId: true,
   createdAt: true,
   updatedAt: true,
@@ -118,4 +119,3 @@ module.exports = {
   ensureRole,
   createUserWithProfile,
 };
-

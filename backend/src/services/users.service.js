@@ -1,9 +1,9 @@
-const AppError = require('../services/utils/appError');
+const AppError = require('./utils/appError');
 const usersRepo = require('../repos/users.repo');
 const authRepo = require('../repos/auth.repo');
 const { prisma } = require('../config/db');
 
-const listUsers = async ({ page = 1, limit = 20, isActive }) => {
+const listUsers = async ({ page = 1, limit = 20, isActive, includeDeleted }) => {
   const skip = (Math.max(1, Number(page)) - 1) * Number(limit);
   const take = Number(limit);
 
@@ -15,6 +15,7 @@ const listUsers = async ({ page = 1, limit = 20, isActive }) => {
     skip,
     take,
     isActive: activeFilter,
+    includeDeleted: includeDeleted === 'true',
   });
 
   return {
@@ -61,25 +62,36 @@ const setUserRole = async (id, roleId) => {
   return await usersRepo.updateRole(id, roleId);
 };
 
+/**
+ * Realiza el Soft Delete de un usuario
+ */
 const deleteUser = async (id) => {
   const user = await usersRepo.findById(id);
   if (!user) {
     throw new AppError('Usuario no encontrado', 404);
   }
 
-  // Integridad referencial: Evitar eliminar usuario si tiene prendas asociadas en venta
-  const productsCount = await prisma.product.count({
-    where: { sellerId: id },
-  });
-  if (productsCount > 0) {
-    throw new AppError(
-      `No se puede eliminar el usuario porque tiene ${productsCount} prenda(s) asociada(s) en el catálogo. Reasigne o elimine las prendas primero.`,
-      400
-    );
+  if (user.deletedAt) {
+    throw new AppError('El usuario ya ha sido eliminado previamente', 400);
   }
 
-  // Si no tiene productos, el usuario y su perfil (onDelete: Cascade) se eliminan limpiamente
-  return await usersRepo.deleteUser(id);
+  return await usersRepo.softDelete(id);
+};
+
+/**
+ * Restaura un usuario previamente eliminado por soft delete
+ */
+const restoreUser = async (id) => {
+  const user = await usersRepo.findById(id);
+  if (!user) {
+    throw new AppError('Usuario no encontrado', 404);
+  }
+
+  if (!user.deletedAt) {
+    throw new AppError('El usuario no está eliminado', 400);
+  }
+
+  return await usersRepo.restore(id);
 };
 
 module.exports = {
@@ -88,4 +100,5 @@ module.exports = {
   setUserStatus,
   setUserRole,
   deleteUser,
+  restoreUser,
 };

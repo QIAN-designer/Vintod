@@ -26,8 +26,10 @@ router.patch('/:id/status', validate(updateUserStatusSchema), usersCtrl.updateUs
 // Asignar rol a un usuario
 router.patch('/:id/role', validate(updateUserRoleSchema), usersCtrl.updateUserRole);
 
-// Eliminar usuario
+// Restaurar usuario eliminado lógicamente (soft delete)
+router.post('/:id/restore', validate(mongoIdParamSchema), usersCtrl.restoreUser);
+
+// Eliminación lógica del usuario (soft delete)
 router.delete('/:id', validate(mongoIdParamSchema), usersCtrl.deleteUser);
 
 module.exports = router;
-

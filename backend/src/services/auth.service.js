@@ -67,18 +67,23 @@ const login = async ({ email, password }) => {
     throw new AppError('Credenciales inválidas', 401);
   }
 
-  // 2. Verificar estado de la cuenta
+  // 2. Verificar soft delete (deletedAt)
+  if (user.deletedAt) {
+    throw new AppError('Esta cuenta ha sido eliminada o dada de baja.', 403);
+  }
+
+  // 3. Verificar estado de la cuenta
   if (!user.isActive) {
     throw new AppError('Tu cuenta está desactivada o suspendida. Contacta con soporte.', 403);
   }
 
-  // 3. Verificar contraseña con Argon2
+  // 4. Verificar contraseña con Argon2
   const isMatch = await verifyPassword(user.password, password);
   if (!isMatch) {
     throw new AppError('Credenciales inválidas', 401);
   }
 
-  // 4. Generar JWT
+  // 5. Generar JWT
   const roleName = user.role ? user.role.name : 'USER';
   const token = generateToken({
     userId: user.id,
@@ -86,7 +91,7 @@ const login = async ({ email, password }) => {
     role: roleName,
   });
 
-  // 5. Devolver datos excluyendo explícitamente el campo password
+  // 6. Devolver datos excluyendo explícitamente el campo password
   const { password: _, ...userWithoutPassword } = user;
 
   return {
@@ -100,7 +105,7 @@ const login = async ({ email, password }) => {
  */
 const getMe = async (userId) => {
   const user = await authRepo.findById(userId);
-  if (!user) {
+  if (!user || user.deletedAt) {
     throw new AppError('Usuario no encontrado', 404);
   }
   return user;
@@ -116,16 +121,13 @@ const revoke_token = async (token, userId = null) => {
     throw new AppError('Token no proporcionado para revocar', 400);
   }
 
-  // Extraer fecha de expiración si es posible para guardarla en la backlist
   let expiresAt = null;
   try {
     const decoded = decodeToken(token);
     if (decoded && decoded.exp) {
       expiresAt = new Date(decoded.exp * 1000);
     }
-  } catch (e) {
-    // Si no se puede decodificar, expira de inmediato o null
-  }
+  } catch (e) {}
 
   return await backlistRepo.addToBacklist({
     token,

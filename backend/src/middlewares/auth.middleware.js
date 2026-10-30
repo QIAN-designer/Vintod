@@ -8,7 +8,7 @@ const backlistRepo = require('../repos/backlist.repo');
  * 1. Extrae token Bearer de Authorization
  * 2. Comprueba si el token se encuentra en la tabla `backlist` (revocado)
  * 3. Verifica vigencia y firma criptográfica
- * 4. Valida contra DB que el usuario exista y tenga isActive: true
+ * 4. Valida contra DB que el usuario exista, no esté eliminado lógicamente (deletedAt === null) y tenga isActive: true
  * 5. Adjunta a req.user { id, role, email, profile } y req.token
  */
 const authenticateJWT = async (req, res, next) => {
@@ -49,6 +49,10 @@ const authenticateJWT = async (req, res, next) => {
 
     if (!user) {
       return next(new AppError('User not found or no longer exists.', 401));
+    }
+
+    if (user.deletedAt) {
+      return next(new AppError('Account has been deleted or deactivated.', 401));
     }
 
     if (!user.isActive) {
