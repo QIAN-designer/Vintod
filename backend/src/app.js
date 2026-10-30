@@ -9,8 +9,8 @@ const authRouter = require('./routes/auth.routes');
 const usersRouter = require('./routes/users.routes');
 const profilesRouter = require('./routes/profiles.routes');
 const productsRouter = require('./routes/products.routes');
-const notFound = require('./middleware/notFound');
-const errorHandler = require('./middleware/errorHandler');
+const notFound = require('./middlewares/notFound');
+const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
