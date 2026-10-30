@@ -36,9 +36,38 @@ const getMe = async (req, res, next) => {
   }
 };
 
+const logout = async (req, res, next) => {
+  try {
+    const token = req.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+    const userId = req.user ? req.user.id : null;
+    const result = await authService.logout(token, userId);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const revokeToken = async (req, res, next) => {
+  try {
+    const token = req.body.token || req.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+    const userId = req.user ? req.user.id : (req.body.userId || null);
+    await authService.revoke_token(token, userId);
+    res.status(200).json({
+      success: true,
+      message: 'Token revocado e ingresado en backlist con éxito',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   getMe,
+  logout,
+  revokeToken,
 };
-

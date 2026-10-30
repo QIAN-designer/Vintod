@@ -15,5 +15,10 @@ router.post('/login', validate(loginSchema), authCtrl.login);
 // Sesión actual validada contra BD y JWT
 router.get('/me', authenticateJWT, authCtrl.getMe);
 
-module.exports = router;
+// Logout: Revoca el token actual guardándolo en la tabla backlist
+router.post('/logout', authenticateJWT, authCtrl.logout);
 
+// Endpoint explícito para revocar tokens (revoke_token)
+router.post('/revoke-token', authenticateJWT, authCtrl.revokeToken);
+
+module.exports = router;

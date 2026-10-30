@@ -23,8 +23,17 @@ const verifyToken = (token) => {
   return jwt.verify(token, JWT_SECRET);
 };
 
+/**
+ * Decodes a token without verifying signature (useful to extract claims/expiration on revocation)
+ * @param {string} token
+ * @returns {Object|null} Decoded payload
+ */
+const decodeToken = (token) => {
+  return jwt.decode(token);
+};
+
 module.exports = {
   generateToken,
   verifyToken,
+  decodeToken,
 };
-

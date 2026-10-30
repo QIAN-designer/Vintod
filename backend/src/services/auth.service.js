@@ -1,8 +1,9 @@
 const AppError = require('./utils/appError');
 const { hashPassword, verifyPassword } = require('../utils/password.util');
-const { generateToken } = require('../utils/jwt.util');
+const { generateToken, decodeToken } = require('../utils/jwt.util');
 const authRepo = require('../repos/auth.repo');
 const profilesRepo = require('../repos/profiles.repo');
+const backlistRepo = require('../repos/backlist.repo');
 
 /**
  * Registra un nuevo usuario creando atómicamente User + Profile
@@ -105,9 +106,50 @@ const getMe = async (userId) => {
   return user;
 };
 
+/**
+ * Revoca un token añadiéndolo a la tabla backlist
+ * @param {string} token - Token JWT a revocar
+ * @param {string|null} userId - ID del usuario asociado (opcional)
+ */
+const revoke_token = async (token, userId = null) => {
+  if (!token) {
+    throw new AppError('Token no proporcionado para revocar', 400);
+  }
+
+  // Extraer fecha de expiración si es posible para guardarla en la backlist
+  let expiresAt = null;
+  try {
+    const decoded = decodeToken(token);
+    if (decoded && decoded.exp) {
+      expiresAt = new Date(decoded.exp * 1000);
+    }
+  } catch (e) {
+    // Si no se puede decodificar, expira de inmediato o null
+  }
+
+  return await backlistRepo.addToBacklist({
+    token,
+    userId,
+    expiresAt,
+  });
+};
+
+/**
+ * Realiza el logout de un usuario revocando su token mediante revoke_token
+ * @param {string} token - Token JWT actual
+ * @param {string|null} userId - ID del usuario autenticado
+ */
+const logout = async (token, userId = null) => {
+  await revoke_token(token, userId);
+  return {
+    message: 'Sesión cerrada exitosamente. Token revocado.',
+  };
+};
+
 module.exports = {
   register,
   login,
   getMe,
+  revoke_token,
+  logout,
 };
-

@@ -1,13 +1,15 @@
 const AppError = require('../services/utils/appError');
 const { verifyToken } = require('../utils/jwt.util');
 const authRepo = require('../repos/auth.repo');
+const backlistRepo = require('../repos/backlist.repo');
 
 /**
  * Middleware de Autenticación JWT:
  * 1. Extrae token Bearer de Authorization
- * 2. Verifica vigencia y firma
- * 3. Valida contra DB que el usuario exista y tenga isActive: true
- * 4. Adjunta a req.user { id, role, email, profile }
+ * 2. Comprueba si el token se encuentra en la tabla `backlist` (revocado)
+ * 3. Verifica vigencia y firma criptográfica
+ * 4. Valida contra DB que el usuario exista y tenga isActive: true
+ * 5. Adjunta a req.user { id, role, email, profile } y req.token
  */
 const authenticateJWT = async (req, res, next) => {
   try {
@@ -20,6 +22,12 @@ const authenticateJWT = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     if (!token) {
       return next(new AppError('No token provided. Authorization header required.', 401));
+    }
+
+    // Comprobar si el token ha sido revocado en la tabla backlist
+    const isRevoked = await backlistRepo.isTokenInBacklist(token);
+    if (isRevoked) {
+      return next(new AppError('Token revocado. Por favor, inicia sesión nuevamente.', 401));
     }
 
     let decoded;
@@ -54,6 +62,7 @@ const authenticateJWT = async (req, res, next) => {
       roleId: user.roleId,
       profile: user.profile,
     };
+    req.token = token;
 
     next();
   } catch (error) {
@@ -64,4 +73,3 @@ const authenticateJWT = async (req, res, next) => {
 module.exports = {
   authenticateJWT,
 };
-
