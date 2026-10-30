@@ -1,39 +1,39 @@
 const AppError = require('./utils/appError');
 const { hashPassword, verifyPassword } = require('../utils/password.util');
 const { generateToken, decodeToken } = require('../utils/jwt.util');
-const authRepo = require('../repos/auth.repo');
+const usersRepo = require('../repos/users.repo');
 const profilesRepo = require('../repos/profiles.repo');
 const backlistRepo = require('../repos/backlist.repo');
 
 /**
- * Registra un nuevo usuario creando atómicamente User + Profile
+ * Registra un nuevo usuario creando atÃ³micamente User + Profile
  */
 const register = async (userData) => {
   const { email, password, username, ...profileDetails } = userData;
 
-  // 1. Validar que el email no esté en uso
-  const existingEmail = await authRepo.findByEmail(email);
+  // 1. Validar que el email no estÃ© en uso
+  const existingEmail = await usersRepo.findByEmail(email);
   if (existingEmail) {
-    throw new AppError('El correo electrónico ya está registrado', 400);
+    throw new AppError('El correo electrÃ³nico ya estÃ¡ registrado', 400);
   }
 
-  // 2. Validar que el username no esté en uso
+  // 2. Validar que el username no estÃ© en uso
   const existingUsername = await profilesRepo.findByUsername(username);
   if (existingUsername) {
-    throw new AppError('El nombre de usuario ya está en uso', 400);
+    throw new AppError('El nombre de usuario ya estÃ¡ en uso', 400);
   }
 
   // 3. Hashear password con Argon2
   const hashedPassword = await hashPassword(password);
 
   // 4. Obtener o crear rol USER por defecto
-  let userRole = await authRepo.findRoleByName('USER');
+  let userRole = await usersRepo.findRoleByName('USER');
   if (!userRole) {
-    userRole = await authRepo.ensureRole('USER', 'Usuario comprador/vendedor del marketplace');
+    userRole = await usersRepo.ensureRole('USER', 'Usuario comprador/vendedor del marketplace');
   }
 
-  // 5. Crear de forma atómica User + Profile
-  const newUser = await authRepo.createUserWithProfile({
+  // 5. Crear de forma atÃ³mica User + Profile
+  const newUser = await usersRepo.createUserWithProfile({
     email,
     password: hashedPassword,
     roleId: userRole.id,
@@ -61,10 +61,10 @@ const register = async (userData) => {
  */
 const login = async ({ email, password }) => {
   // 1. Buscar usuario con su password hasheado
-  const user = await authRepo.findByEmailWithPassword(email);
+  const user = await usersRepo.findByEmailWithPassword(email);
 
   if (!user) {
-    throw new AppError('Credenciales inválidas', 401);
+    throw new AppError('Credenciales invÃ¡lidas', 401);
   }
 
   // 2. Verificar soft delete (deletedAt)
@@ -74,13 +74,13 @@ const login = async ({ email, password }) => {
 
   // 3. Verificar estado de la cuenta
   if (!user.isActive) {
-    throw new AppError('Tu cuenta está desactivada o suspendida. Contacta con soporte.', 403);
+    throw new AppError('Tu cuenta estÃ¡ desactivada o suspendida. Contacta con soporte.', 403);
   }
 
-  // 4. Verificar contraseña con Argon2
+  // 4. Verificar contraseÃ±a con Argon2
   const isMatch = await verifyPassword(user.password, password);
   if (!isMatch) {
-    throw new AppError('Credenciales inválidas', 401);
+    throw new AppError('Credenciales invÃ¡lidas', 401);
   }
 
   // 5. Generar JWT
@@ -91,7 +91,7 @@ const login = async ({ email, password }) => {
     role: roleName,
   });
 
-  // 6. Devolver datos excluyendo explícitamente el campo password
+  // 6. Devolver datos excluyendo explÃ­citamente el campo password
   const { password: _, ...userWithoutPassword } = user;
 
   return {
@@ -104,7 +104,7 @@ const login = async ({ email, password }) => {
  * Obtiene los datos del usuario actual autenticado
  */
 const getMe = async (userId) => {
-  const user = await authRepo.findById(userId);
+  const user = await usersRepo.findById(userId);
   if (!user || user.deletedAt) {
     throw new AppError('Usuario no encontrado', 404);
   }
@@ -112,7 +112,7 @@ const getMe = async (userId) => {
 };
 
 /**
- * Revoca un token añadiéndolo a la tabla backlist
+ * Revoca un token aÃ±adiÃ©ndolo a la tabla backlist
  * @param {string} token - Token JWT a revocar
  * @param {string|null} userId - ID del usuario asociado (opcional)
  */
@@ -144,7 +144,7 @@ const revoke_token = async (token, userId = null) => {
 const logout = async (token, userId = null) => {
   await revoke_token(token, userId);
   return {
-    message: 'Sesión cerrada exitosamente. Token revocado.',
+    message: 'SesiÃ³n cerrada exitosamente. Token revocado.',
   };
 };
 

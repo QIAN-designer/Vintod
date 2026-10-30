@@ -1,6 +1,6 @@
 const AppError = require('../services/utils/appError');
 const { verifyToken } = require('../utils/jwt.util');
-const authRepo = require('../repos/auth.repo');
+const usersRepo = require('../repos/users.repo');
 const backlistRepo = require('../repos/backlist.repo');
 
 /**
@@ -45,7 +45,7 @@ const authenticateJWT = async (req, res, next) => {
       return next(new AppError('Invalid token payload.', 401));
     }
 
-    const user = await authRepo.findById(userId);
+    const user = await usersRepo.findById(userId);
 
     if (!user) {
       return next(new AppError('User not found or no longer exists.', 401));

@@ -1,6 +1,5 @@
 const AppError = require('./utils/appError');
 const usersRepo = require('../repos/users.repo');
-const authRepo = require('../repos/auth.repo');
 const { prisma } = require('../config/db');
 
 const listUsers = async ({ page = 1, limit = 20, isActive, includeDeleted }) => {
