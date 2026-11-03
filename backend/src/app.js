@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const path = require('path');
 
@@ -29,9 +30,27 @@ if (!fs.existsSync(logsDir)) {
 const accessLogStream = fs.createWriteStream(path.join(logsDir, 'access.log'), { flags: 'a' });
 app.use(morgan('combined', { stream: accessLogStream }));
 
-// Middlewares globales
-app.use(cors());
+// Configuración CORS con soporte de credenciales (cookies HTTP-Only)
+const allowedOrigins = [
+  'http://localhost:4200',
+  'http://127.0.0.1:4200',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permitir peticiones sin origen (ej: curl, postman, apps móviles)
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true); // En desarrollo permitir origen dinámico
+  },
+  credentials: true, // Permitir envío y recepción de cookies
+}));
+
+// Middlewares de parsing del body y cookies
 app.use(express.json());
+app.use(cookieParser()); // Habilitar lectura de req.cookies
 
 // Rutas base bajo /api
 app.use('/api/auth', authRouter);

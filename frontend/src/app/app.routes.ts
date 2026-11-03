@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
+import { adminGuard } from './core/auth/admin.guard';
 
 export const routes: Routes = [
   // Public Marketplace Layout
@@ -11,28 +13,42 @@ export const routes: Routes = [
         redirectTo: 'products',
         pathMatch: 'full'
       },
+      // Rutas públicas de catálogo
       {
         path: 'products',
         loadComponent: () => import('./features/products/pages/product-list/product-list.component').then(m => m.ProductListComponent)
       },
       {
-        path: 'products/new',
-        loadComponent: () => import('./features/products/pages/product-create/product-create.component').then(m => m.ProductCreatePageComponent)
-      },
-      {
         path: 'products/:id',
         loadComponent: () => import('./features/products/pages/product-detail/product-detail.component').then(m => m.ProductDetailComponent)
       },
+      // Rutas de autenticación públicas
+      {
+        path: 'login',
+        loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
+      },
+      // Rutas protegidas por authGuard (publicar y editar prendas)
+      {
+        path: 'products/new',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/products/pages/product-create/product-create.component').then(m => m.ProductCreatePageComponent)
+      },
       {
         path: 'products/:id/edit',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/products/pages/product-edit/product-edit.component').then(m => m.ProductEditPageComponent)
       }
     ]
   },
 
-  // Admin Dashboard Layout (Feature-based)
+  // Admin Dashboard Layout (Protegido por adminGuard)
   {
     path: 'admin',
+    canActivate: [adminGuard],
     loadComponent: () => import('./layouts/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     children: [
       {

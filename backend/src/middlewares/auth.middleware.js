@@ -3,9 +3,11 @@ const { verifyToken } = require('../utils/jwt.util');
 const usersRepo = require('../repos/users.repo');
 const backlistRepo = require('../repos/backlist.repo');
 
+const COOKIE_NAME = 'jwt_token';
+
 /**
  * Middleware de Autenticación JWT:
- * 1. Extrae token Bearer de Authorization
+ * 1. Extrae token desde Cookies httpOnly (req.cookies.jwt_token) o desde el Header Bearer (Authorization)
  * 2. Comprueba si el token se encuentra en la tabla `backlist` (revocado)
  * 3. Verifica vigencia y firma criptográfica
  * 4. Valida contra DB que el usuario exista, no esté eliminado lógicamente (deletedAt === null) y tenga isActive: true
@@ -13,15 +15,20 @@ const backlistRepo = require('../repos/backlist.repo');
  */
 const authenticateJWT = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    let token = null;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next(new AppError('No token provided. Authorization header required.', 401));
+    // 1. Prioridad: Leer token de la cookie httpOnly
+    if (req.cookies && req.cookies[COOKIE_NAME]) {
+      token = req.cookies[COOKIE_NAME];
     }
 
-    const token = authHeader.split(' ')[1];
+    // 2. Fallback: Leer token desde cabecera Authorization: Bearer <token>
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
     if (!token) {
-      return next(new AppError('No token provided. Authorization header required.', 401));
+      return next(new AppError('No token provided. Authorization header or cookie required.', 401));
     }
 
     // Comprobar si el token ha sido revocado en la tabla backlist

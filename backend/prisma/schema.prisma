@@ -33,6 +33,7 @@ model User {
   email         String    @unique
   password      String
   isActive      Boolean   @default(true)
+  deletedAt     DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -44,6 +45,7 @@ model User {
   profile       Profile?
   products      Product[] @relation("SellerProducts")
 
+  @@index([deletedAt, isActive])
   @@map("users")
 }
 
@@ -56,7 +58,7 @@ model Profile {
   avatarUrl     String?
   bio           String?
   city          String?
-  country       String   @default("EspaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±a")
+  country       String   @default("EspaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â±a")
   postalCode    String?
   ratingAverage Float    @default(0)
   ratingCount   Int      @default(0)
@@ -71,7 +73,7 @@ model Profile {
 }
 
 // -------------------------------------------------------------
-// 3. CATEGORÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂAS (JerarquÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­a con autorreferencia)
+// 3. CATEGORÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂAS (JerarquÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a con autorreferencia)
 // -------------------------------------------------------------
 model Category {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
@@ -82,11 +84,11 @@ model Category {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  // RelaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n reflexiva para subcategorÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­as
+  // RelaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n reflexiva para subcategorÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­as
   parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children  Category[] @relation("CategoryHierarchy")
 
-  // RelaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n con productos
+  // RelaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n con productos
   products  Product[]
 
   @@map("categories")
@@ -100,19 +102,19 @@ model Brand {
   name      String    @unique
   slug      String    @unique
   logoUrl   String?
-  images    String[]  // GalerÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­a de imÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡genes / banners de la marca
+  images    String[]  // GalerÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a de imÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡genes / banners de la marca
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  // RelaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n con productos
+  // RelaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n con productos
   products  Product[]
 
   @@map("brands")
 }
 
 // -------------------------------------------------------------
-// 5. PRODUCTOS (Entidad Base / CatÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡logo Padre)
+// 5. PRODUCTOS (Entidad Base / CatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡logo Padre)
 // -------------------------------------------------------------
 model Product {
   id          String           @id @default(auto()) @map("_id") @db.ObjectId
@@ -126,7 +128,7 @@ model Product {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  // Claves forÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡neas
+  // Claves forÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡neas
   sellerId    String           @db.ObjectId
   categoryId  String           @db.ObjectId
   brandId     String           @db.ObjectId
@@ -156,7 +158,7 @@ model ProductVariant {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  // Clave forÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡nea a Product
+  // Clave forÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡nea a Product
   productId   String         @db.ObjectId
 
   // Relaciones
@@ -168,7 +170,7 @@ model ProductVariant {
 }
 
 // -------------------------------------------------------------
-// 7. IMÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂGENES DE PRODUCTO (ColecciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n Independiente)
+// 7. IMÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂGENES DE PRODUCTO (ColecciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n Independiente)
 // -------------------------------------------------------------
 model ProductImage {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
@@ -178,11 +180,11 @@ model ProductImage {
   sortOrder   Int            @default(0)
   createdAt   DateTime       @default(now())
 
-  // Polimorfismo / IdentificaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de entidad (ej: "PRODUCT_VARIANT", "USER", etc.)
+  // Polimorfismo / IdentificaciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n de entidad (ej: "PRODUCT_VARIANT", "USER", etc.)
   entityType  String?        // Tipo de entidad asociada
   entityId    String?        @db.ObjectId // ID de la entidad asociada
 
-  // Clave forÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡nea a Variante
+  // Clave forÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡nea a Variante
   variantId   String         @db.ObjectId
 
   // Relaciones
@@ -194,7 +196,7 @@ model ProductImage {
 }
 
 // -------------------------------------------------------------
-// 8. LISTA NEGRA DE TOKENS (Logout / RevocaciÃƒÆ’Ã‚Â³n de Tokens)
+// 8. LISTA NEGRA DE TOKENS (Logout / RevocaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de Tokens)
 // -------------------------------------------------------------
 model Backlist {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
