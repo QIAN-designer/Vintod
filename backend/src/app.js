@@ -10,6 +10,8 @@ const authRouter = require('./routes/auth.routes');
 const usersRouter = require('./routes/users.routes');
 const profilesRouter = require('./routes/profiles.routes');
 const productsRouter = require('./routes/products.routes');
+const categoriesRouter = require('./routes/categories.routes');
+const brandsRouter = require('./routes/brands.routes');
 const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -57,6 +59,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/profiles', profilesRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/categories', categoriesRouter);
+app.use('/api/brands', brandsRouter);
 
 // Manejo de rutas no encontradas (404)
 app.use(notFound);

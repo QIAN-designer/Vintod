@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-surface font-body-md text-on-surface flex flex-col">
+﻿<div class="min-h-screen bg-surface font-body-md text-on-surface flex flex-col">
   <!-- Top Navigation Header -->
   <header class="fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
     <div class="max-w-[1280px] mx-auto px-margin-desktop flex flex-col justify-between py-space-xs">
@@ -46,6 +46,7 @@
         </nav>
 
         <!-- CTA & User Avatar -->
+        <!-- CTA & User Auth Menu -->
         <div class="flex items-center gap-space-md shrink-0">
           <a
             routerLink="/products/new"
@@ -55,14 +56,105 @@
             <span>¡Vender ahora!</span>
           </a>
 
-          <div class="hidden sm:flex items-center gap-2 pl-space-xs">
-            <div class="relative">
-              <div class="w-8 h-8 rounded-full bg-surface-container-highest text-primary font-bold flex items-center justify-center text-xs">
-                VM
+          <!-- Sección dinámica Auth -->
+          <div class="relative pl-space-xs">
+            @if (authStore.isAuthenticated()) {
+              <!-- Usuario autenticado: avatar interactivo con menú -->
+              <button
+                type="button"
+                (click)="toggleUserMenu()"
+                class="flex items-center gap-2 p-1 rounded-full hover:bg-surface-container-high transition-colors focus:outline-none cursor-pointer"
+              >
+                <div class="relative">
+                  <img
+                    [src]="authStore.avatar()"
+                    [alt]="authStore.username()"
+                    class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/30"
+                  />
+                  <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-secondary rounded-full ring-2 ring-surface"></span>
+                </div>
+                <div class="hidden sm:block text-left text-xs pr-1">
+                  <div class="font-bold text-on-surface leading-tight">{{ authStore.username() }}</div>
+                  <div class="text-[10px] text-primary font-semibold uppercase">{{ authStore.userRole() }}</div>
+                </div>
+                <span class="material-symbols-outlined text-[18px] text-outline hidden sm:block">expand_more</span>
+              </button>
+
+              <!-- Menú desplegable -->
+              @if (isUserMenuOpen()) {
+                <div
+                  class="fixed inset-0 z-40"
+                  (click)="isUserMenuOpen.set(false)"
+                ></div>
+                <div
+                  class="origin-top-right absolute right-0 mt-2 w-56 rounded-2xl shadow-xl py-2 bg-surface-container-lowest ring-1 ring-outline-variant/30 focus:outline-none z-50 divide-y divide-surface-container"
+                >
+                  <div class="px-4 py-3">
+                    <p class="text-xs text-outline">Conectado como</p>
+                    <p class="text-sm font-bold text-on-surface truncate">{{ authStore.username() }}</p>
+                    <p class="text-xs text-outline truncate">{{ authStore.user()?.email }}</p>
+                  </div>
+
+                  <div class="py-1">
+                    <a
+                      routerLink="/profile"
+                      (click)="isUserMenuOpen.set(false)"
+                      class="flex items-center gap-2.5 px-4 py-2 text-sm text-on-surface hover:bg-surface-container-low transition-colors"
+                    >
+                      <span class="material-symbols-outlined text-[18px] text-outline">person</span>
+                      <span>Mi Perfil</span>
+                    </a>
+
+                    <a
+                      routerLink="/products/new"
+                      (click)="isUserMenuOpen.set(false)"
+                      class="flex items-center gap-2.5 px-4 py-2 text-sm text-on-surface hover:bg-surface-container-low transition-colors"
+                    >
+                      <span class="material-symbols-outlined text-[18px] text-outline">add_circle</span>
+                      <span>Subir prenda</span>
+                    </a>
+
+                    @if (authStore.isAdmin()) {
+                      <a
+                        routerLink="/admin"
+                        (click)="isUserMenuOpen.set(false)"
+                        class="flex items-center gap-2.5 px-4 py-2 text-sm text-primary font-semibold hover:bg-surface-container-low transition-colors"
+                      >
+                        <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
+                        <span>Panel Admin</span>
+                      </a>
+                    }
+                  </div>
+
+                  <div class="py-1">
+                    <button
+                      type="button"
+                      (click)="handleLogout()"
+                      class="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-error hover:bg-error-container/20 transition-colors cursor-pointer"
+                    >
+                      <span class="material-symbols-outlined text-[18px] text-error">logout</span>
+                      <span>Cerrar sesión</span>
+                    </button>
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- Usuario anónimo: Iniciar sesión y Registrarse -->
+              <div class="flex items-center gap-2">
+                <a
+                  routerLink="/login"
+                  class="px-3.5 py-1.5 rounded-full font-label-md text-label-md font-semibold text-on-surface hover:bg-surface-container-low transition-all"
+                >
+                  Iniciar sesión
+                </a>
+                <a
+                  routerLink="/register"
+                  class="px-4 py-1.5 rounded-full font-label-md text-label-md font-bold bg-primary text-on-primary shadow-sm hover:opacity-95 transition-all"
+                >
+                  Registrarse
+                </a>
               </div>
-              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-secondary rounded-full ring-2 ring-surface"></span>
-            </div>
-            <span class="font-label-md text-label-md text-on-surface hidden xl:inline-block">Vendedor</span>
+            }
           </div>
         </div>
       </div>

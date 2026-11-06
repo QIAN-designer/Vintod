@@ -1,10 +1,13 @@
 import { Component, OnInit, OnDestroy, inject, signal } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { ProductsStore } from "../../../../core/store/products.store";
+import { AuthStore } from "../../../../core/auth/auth.store";
+import { AuthService } from "../../../../core/auth/auth.service";
 import { EmptyStateComponent } from "../../../../shared/components/empty-state/empty-state.component";
 import { ErrorStateComponent } from "../../../../shared/components/error-state/error-state.component";
 import { ProductCardComponent } from "../../components/product-card/product-card.component";
 import { ProductSkeletonComponent } from "../../components/product-skeleton/product-skeleton.component";
+import Swal from "sweetalert2";
 
 @Component({
   selector: "app-product-list",
@@ -20,9 +23,43 @@ import { ProductSkeletonComponent } from "../../components/product-skeleton/prod
 })
 export class ProductListComponent implements OnInit, OnDestroy {
   store = inject(ProductsStore);
+  authStore = inject(AuthStore);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
+  isUserMenuOpen = signal(false);
   ecoCounter = signal(14280);
   private ecoIntervalId?: any;
+
+  toggleUserMenu(): void {
+    this.isUserMenuOpen.update(v => !v);
+  }
+
+  handleLogout(): void {
+    this.isUserMenuOpen.set(false);
+    Swal.fire({
+      title: '¿Cerrar sesión?',
+      text: '¿Seguro que deseas salir de tu cuenta en Vintod?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#007782',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Sí, salir',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.authService.logout();
+        Swal.fire({
+          icon: 'success',
+          title: 'Sesión cerrada',
+          text: 'Has salido de tu cuenta.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        this.router.navigate(['/login']);
+      }
+    });
+  }
 
   categories = [
     {

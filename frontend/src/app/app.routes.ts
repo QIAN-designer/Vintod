@@ -31,6 +31,12 @@ export const routes: Routes = [
         path: 'register',
         loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
       },
+      // Ruta privada de Perfil de Usuario
+      {
+        path: 'profile',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfilePageComponent)
+      },
       // Rutas protegidas por authGuard (publicar y editar prendas)
       {
         path: 'products/new',
