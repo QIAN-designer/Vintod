@@ -3,6 +3,7 @@ import { Router, Params } from '@angular/router';
 import { Product, ProductQueryParams } from '../models/marketplace.model';
 import { PaginationMeta } from '../models/api-response.model';
 import { ProductService } from '../services/product.service';
+import { ShopService } from '../services/shop.service';
 
 export interface ProductsState {
   products: Product[];
@@ -33,6 +34,7 @@ export interface ProductsState {
 })
 export class ProductsStore {
   private productService = inject(ProductService);
+  private shopService = inject(ShopService);
   private router = inject(Router);
   private abortController: AbortController | null = null;
 
@@ -352,7 +354,7 @@ export class ProductsStore {
     this.state.update(st => ({ ...st, loading: true, error: null }));
 
     try {
-      const res = await this.productService.fetchProductsWithSignal(queryParams, signalToUse);
+      const res = await this.shopService.getShopProducts(queryParams, signalToUse);
       if (signalToUse.aborted) return;
 
       if (res.success && res.data) {

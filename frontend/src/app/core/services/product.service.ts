@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Product, ProductQueryParams, Brand, Category } from '../models/marketplace.model';
-import { ApiResponse } from '../models/api-response.model';
+import { ApiResponse, PaginationMeta } from '../models/api-response.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -13,8 +13,27 @@ export class ProductService {
   private baseUrl = `${environment.apiUrl}/products`;
   private apiUrl = environment.apiUrl;
 
+  // Signals reactivas en el servicio de productos/shop
+  private productsSignal = signal<Product[]>([]);
+  private loadingSignal = signal<boolean>(false);
+  private errorSignal = signal<string | null>(null);
+  private lastRequestUrlSignal = signal<string>('');
+  private paginationSignal = signal<PaginationMeta>({
+    total: 0,
+    page: 1,
+    limit: 8,
+    totalPages: 1
+  });
+
+  readonly products = this.productsSignal.asReadonly();
+  readonly loading = this.loadingSignal.asReadonly();
+  readonly error = this.errorSignal.asReadonly();
+  readonly lastRequestUrl = this.lastRequestUrlSignal.asReadonly();
+  readonly pagination = this.paginationSignal.asReadonly();
+  readonly totalProducts = computed(() => this.paginationSignal().total || this.productsSignal().length);
+
   /**
-   * Construye una URL completa añadiendo los query params válidos
+   * Construye una URL completa añadiendo los query params válidos (?key=value&key=value)
    */
   buildUrl(endpointUrl: string, params?: Record<string, any>): string {
     if (!params) return endpointUrl;
@@ -31,22 +50,42 @@ export class ProductService {
   }
 
   /**
-   * Petición GET con soporte nativo para AbortSignal (AbortController) y buildUrl
+   * Petición GET con soporte nativo para AbortSignal (AbortController), buildUrl y actualización de Signals
    */
   async fetchProductsWithSignal(
     params?: ProductQueryParams,
     signal?: AbortSignal
   ): Promise<ApiResponse<Product[]>> {
     const url = this.buildUrl(this.baseUrl, params as Record<string, any>);
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal,
-    });
-    if (!response.ok) {
-      throw new Error(`Error HTTP ${response.status}`);
+    this.lastRequestUrlSignal.set(url);
+    this.loadingSignal.set(true);
+    this.errorSignal.set(null);
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        signal,
+      });
+      if (!response.ok) {
+        throw new Error(`Error HTTP ${response.status}`);
+      }
+      const res: ApiResponse<Product[]> = await response.json();
+      const items = res.data || [];
+      this.productsSignal.set(items);
+      if (res.pagination) {
+        this.paginationSignal.set(res.pagination);
+      }
+      this.loadingSignal.set(false);
+      return res;
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        this.errorSignal.set(err?.message || 'Error al obtener productos');
+        this.loadingSignal.set(false);
+      }
+      throw err;
     }
-    return response.json();
   }
 
   /**

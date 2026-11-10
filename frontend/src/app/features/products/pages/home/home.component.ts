@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ProductsStore } from '../../../../core/store/products.store';
 import { AuthStore } from '../../../../core/auth/auth.store';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -226,10 +227,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   authStore = inject(AuthStore);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   isUserMenuOpen = signal(false);
   ecoCounter = signal(14280);
   private ecoIntervalId?: any;
+  private queryParamsSub?: Subscription;
 
   categories: CategoryCardItem[] = [
     {
@@ -386,7 +389,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
-    this.store.fetchShopProducts();
+    // Deep-linking: Si el usuario entra a Home con queryParams (ej: /?category=Chaquetas o /home?location=España),
+    // sincroniza el Store con la URL y redirige a /shop manteniendo los queryParams.
+    this.queryParamsSub = this.route.queryParams.subscribe(params => {
+      if (params && Object.keys(params).length > 0) {
+        this.store.setFiltersFromQueryParams(params);
+        this.router.navigate(['/shop'], { queryParams: params, replaceUrl: true });
+        return;
+      }
+      this.store.fetchShopProducts();
+    });
+
     this.ecoIntervalId = setInterval(() => {
       if (Math.random() > 0.5) {
         this.ecoCounter.update(c => c + Math.floor(Math.random() * 3) + 1);
@@ -397,6 +410,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.ecoIntervalId) {
       clearInterval(this.ecoIntervalId);
+    }
+    if (this.queryParamsSub) {
+      this.queryParamsSub.unsubscribe();
     }
   }
 
@@ -410,7 +426,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Deep-linking & Navigate con query_params:
+   * Actualiza el Store y navega a /shop?key=value&key=value
+   */
   navigateToShopWithFilter(queryParams: Record<string, any>) {
+    this.store.setFiltersFromQueryParams(queryParams);
     this.router.navigate(['/shop'], { queryParams });
   }
 

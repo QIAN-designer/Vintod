@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 export interface FilterCriteria {
   category: string;
   brand: string;
+  location: string;
+  host: string;
   condition: string;
   size: string;
   minPrice: number | null;
@@ -197,6 +199,18 @@ export interface FilterCriteria {
               <button type="button" (click)="onBrandChange('')" class="hover:opacity-75 cursor-pointer">×</button>
             </span>
           }
+          @if (location) {
+            <span class="inline-flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2.5 py-0.5 rounded-full font-semibold">
+              Ubicación: {{ location }}
+              <button type="button" (click)="onLocationChange('')" class="hover:opacity-75 cursor-pointer">×</button>
+            </span>
+          }
+          @if (host) {
+            <span class="inline-flex items-center gap-1 bg-tertiary-container text-on-tertiary-container px-2.5 py-0.5 rounded-full font-semibold">
+              Host: {{ host }}
+              <button type="button" (click)="onHostChange('')" class="hover:opacity-75 cursor-pointer">×</button>
+            </span>
+          }
           @if (condition) {
             <span class="inline-flex items-center gap-1 bg-tertiary-fixed text-on-tertiary-fixed px-2.5 py-0.5 rounded-full font-semibold">
               Estado: {{ condition }}
@@ -226,6 +240,8 @@ export interface FilterCriteria {
 export class FilterBarComponent {
   @Input() category = '';
   @Input() brand = '';
+  @Input() location = '';
+  @Input() host = '';
   @Input() condition = '';
   @Input() size = '';
   @Input() minPrice: number | null = null;
@@ -265,6 +281,8 @@ export class FilterBarComponent {
     return !!(
       this.category ||
       this.brand ||
+      this.location ||
+      this.host ||
       this.condition ||
       this.size ||
       this.minPrice !== null ||
@@ -282,6 +300,16 @@ export class FilterBarComponent {
   onBrandChange(brand: string) {
     this.brand = brand;
     this.filterChange.emit({ brand });
+  }
+
+  onLocationChange(location: string) {
+    this.location = location;
+    this.filterChange.emit({ location });
+  }
+
+  onHostChange(host: string) {
+    this.host = host;
+    this.filterChange.emit({ host });
   }
 
   onConditionChange(condition: string) {
