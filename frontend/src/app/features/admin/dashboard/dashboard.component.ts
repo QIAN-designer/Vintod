@@ -238,6 +238,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.productsStore.loadProducts();
     this.productsStore.loadDeletedProducts();
+    this.adminStore.loadUsers();
   }
 
   getOrderStatusColor(status: string): any {

@@ -247,12 +247,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   selectLocation(loc: LocationItem) {
-    this.store.updateFilters({ brand: loc.slug || '', page: 1 }, true);
+    this.store.updateFilters({ location: loc.country, brand: loc.slug || '', page: 1 }, true);
     this.scrollToFeed();
   }
 
   selectHost(host: HostItem) {
-    this.store.updateFilters({ search: host.name.split(' ')[0], page: 1 }, true);
+    this.store.updateFilters({ host: host.name.split(' ')[0], page: 1 }, true);
     this.scrollToFeed();
   }
 

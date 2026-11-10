@@ -161,7 +161,7 @@ import Swal from 'sweetalert2';
               @for (loc of locations; track loc.id) {
                 <app-location-card
                   [location]="loc"
-                  (selectLocation)="navigateToShopWithFilter({ search: $event.slug || $event.name })"
+                  (selectLocation)="navigateToShopWithFilter({ location: $event.country, brand: $event.slug })"
                 ></app-location-card>
               }
             </app-carousel>
@@ -179,7 +179,7 @@ import Swal from 'sweetalert2';
               @for (host of featuredHosts; track host.id) {
                 <app-host-card
                   [host]="host"
-                  (selectHost)="navigateToShopWithFilter({ search: $event.name.split(' ')[0] })"
+                  (selectHost)="navigateToShopWithFilter({ host: $event.name.split(' ')[0] })"
                 ></app-host-card>
               }
             </app-carousel>

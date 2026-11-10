@@ -3,7 +3,8 @@ const productsService = require('../services/products.service');
 // Capa de controlador: recibe req (incluyendo req.query), llama al servicio y devuelve res
 const getProducts = async (req, res, next) => {
   try {
-    const result = await productsService.getAllProducts(req.query);
+    const query = req.query && Object.keys(req.query).length > 0 ? req.query : {};
+    const result = await productsService.getAllProducts(query);
     res.status(200).json({
       success: true,
       count: result.products.length,
@@ -17,7 +18,8 @@ const getProducts = async (req, res, next) => {
 
 const getDeletedProducts = async (req, res, next) => {
   try {
-    const products = await productsService.getDeletedProducts(req.query);
+    const query = req.query && Object.keys(req.query).length > 0 ? req.query : {};
+    const products = await productsService.getDeletedProducts(query);
     res.status(200).json({
       success: true,
       count: products.length,

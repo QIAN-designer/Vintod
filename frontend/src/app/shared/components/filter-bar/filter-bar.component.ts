@@ -16,6 +16,44 @@ export interface FilterCriteria {
   selector: 'app-filter-bar',
   standalone: true,
   imports: [FormsModule],
+  styles: [`
+    .range-slider-input {
+      -webkit-appearance: none;
+      appearance: none;
+      pointer-events: none;
+      background: transparent;
+    }
+    .range-slider-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      pointer-events: auto;
+      width: 16px;
+      height: 16px;
+      border-radius: 9999px;
+      background: #007782;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .range-slider-input::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    .range-slider-input::-moz-range-thumb {
+      pointer-events: auto;
+      width: 16px;
+      height: 16px;
+      border-radius: 9999px;
+      background: #007782;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .range-slider-input::-moz-range-thumb:hover {
+      transform: scale(1.15);
+    }
+  `],
   template: `
     <div class="w-full bg-surface-container-low p-4 rounded-2xl shadow-xs flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2.5">
@@ -79,26 +117,43 @@ export interface FilterCriteria {
           <span class="material-symbols-outlined absolute right-2.5 top-2 text-[16px] text-outline pointer-events-none">expand_more</span>
         </div>
 
-        <!-- Rango de Precio -->
-        <div class="flex items-center gap-1.5 bg-surface px-3 py-1.5 rounded-full border border-outline-variant/30 shadow-2xs">
-          <span class="text-xs text-outline font-medium">€</span>
-          <input
-            type="number"
-            min="0"
-            placeholder="Mín"
-            [ngModel]="minPrice"
-            (ngModelChange)="onMinPriceChange($event)"
-            class="w-14 text-xs bg-transparent outline-none text-on-surface"
-          />
-          <span class="text-outline">-</span>
-          <input
-            type="number"
-            min="0"
-            placeholder="Máx"
-            [ngModel]="maxPrice"
-            (ngModelChange)="onMaxPriceChange($event)"
-            class="w-14 text-xs bg-transparent outline-none text-on-surface"
-          />
+        <!-- Selector de Precio con Slider Dual -->
+        <div class="flex items-center gap-3 bg-surface px-4 py-1.5 rounded-full border border-outline-variant/30 shadow-2xs min-w-[240px]">
+          <span class="text-xs font-semibold text-on-surface whitespace-nowrap">
+            {{ currentMin }}€ - {{ currentMax >= maxLimit ? maxLimit + '+€' : currentMax + '€' }}
+          </span>
+          <div class="relative flex-1 h-5 flex items-center min-w-[110px]">
+            <!-- Track de fondo -->
+            <div class="w-full h-1.5 bg-surface-container-highest rounded-full"></div>
+            <!-- Barra de progreso activa -->
+            <div
+              class="absolute h-1.5 bg-primary rounded-full"
+              [style.left.%]="minPercent"
+              [style.width.%]="maxPercent - minPercent"
+            ></div>
+            <!-- Slider Mínimo -->
+            <input
+              type="range"
+              [min]="minLimit"
+              [max]="maxLimit"
+              step="5"
+              [ngModel]="currentMin"
+              (ngModelChange)="onMinSliderChange($event)"
+              class="range-slider-input absolute inset-0 w-full h-full m-0 z-10"
+              aria-label="Precio mínimo"
+            />
+            <!-- Slider Máximo -->
+            <input
+              type="range"
+              [min]="minLimit"
+              [max]="maxLimit"
+              step="5"
+              [ngModel]="currentMax"
+              (ngModelChange)="onMaxSliderChange($event)"
+              class="range-slider-input absolute inset-0 w-full h-full m-0 z-20"
+              aria-label="Precio máximo"
+            />
+          </div>
         </div>
 
         <!-- Ordenación -->
@@ -154,6 +209,12 @@ export interface FilterCriteria {
               <button type="button" (click)="onSizeChange('')" class="hover:opacity-75 cursor-pointer">×</button>
             </span>
           }
+          @if (minPrice !== null || maxPrice !== null) {
+            <span class="inline-flex items-center gap-1 bg-primary-fixed/60 text-on-primary-fixed px-2.5 py-0.5 rounded-full font-semibold">
+              Precio: {{ currentMin }}€ - {{ currentMax >= maxLimit ? maxLimit + '+€' : currentMax + '€' }}
+              <button type="button" (click)="clearPriceFilter()" class="hover:opacity-75 cursor-pointer">×</button>
+            </span>
+          }
         </div>
         <span>
           Resultados encontrados: <strong class="text-on-surface">{{ totalResults }}</strong>
@@ -173,6 +234,9 @@ export class FilterBarComponent {
   @Input() order: 'asc' | 'desc' = 'desc';
   @Input() totalResults = 0;
 
+  @Input() minLimit = 0;
+  @Input() maxLimit = 300;
+
   @Input() categories: string[] = ['Vestidos', 'Zapatillas', 'Chaquetas', 'Bolsos', 'Vintage', 'Punto', 'Sudaderas', 'Pantalones'];
   @Input() brands: string[] = ['Nike', "Levi's", 'Zara', 'Carhartt', 'Sézane', 'Adidas', 'Ralph Lauren', 'Vintage'];
   @Input() conditions: string[] = ['Nuevo con etiquetas', 'Muy bueno', 'Bueno', 'Satisfactorio'];
@@ -180,6 +244,22 @@ export class FilterBarComponent {
 
   @Output() filterChange = new EventEmitter<Partial<FilterCriteria>>();
   @Output() reset = new EventEmitter<void>();
+
+  get currentMin(): number {
+    return this.minPrice !== null && this.minPrice !== undefined ? this.minPrice : this.minLimit;
+  }
+
+  get currentMax(): number {
+    return this.maxPrice !== null && this.maxPrice !== undefined ? this.maxPrice : this.maxLimit;
+  }
+
+  get minPercent(): number {
+    return ((this.currentMin - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+  }
+
+  get maxPercent(): number {
+    return ((this.currentMax - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+  }
 
   get hasActiveFilters(): boolean {
     return !!(
@@ -214,16 +294,26 @@ export class FilterBarComponent {
     this.filterChange.emit({ size });
   }
 
-  onMinPriceChange(val: any) {
-    const parsed = val === '' || val === null ? null : Number(val);
-    this.minPrice = parsed;
-    this.filterChange.emit({ minPrice: parsed });
+  onMinSliderChange(val: number) {
+    const numVal = Number(val);
+    const clamped = Math.min(numVal, this.currentMax - 5);
+    const finalMin = clamped <= this.minLimit ? null : clamped;
+    this.minPrice = finalMin;
+    this.filterChange.emit({ minPrice: finalMin });
   }
 
-  onMaxPriceChange(val: any) {
-    const parsed = val === '' || val === null ? null : Number(val);
-    this.maxPrice = parsed;
-    this.filterChange.emit({ maxPrice: parsed });
+  onMaxSliderChange(val: number) {
+    const numVal = Number(val);
+    const clamped = Math.max(numVal, this.currentMin + 5);
+    const finalMax = clamped >= this.maxLimit ? null : clamped;
+    this.maxPrice = finalMax;
+    this.filterChange.emit({ maxPrice: finalMax });
+  }
+
+  clearPriceFilter() {
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.filterChange.emit({ minPrice: null, maxPrice: null });
   }
 
   onSortChange(combined: string) {

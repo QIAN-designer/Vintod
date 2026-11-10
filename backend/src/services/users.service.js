@@ -1,5 +1,7 @@
 const AppError = require('./utils/appError');
 const usersRepo = require('../repos/users.repo');
+const profilesRepo = require('../repos/profiles.repo');
+const { hashPassword } = require('../utils/password.util');
 const { prisma } = require('../config/db');
 
 const listUsers = async (query = {}) => {
@@ -74,6 +76,42 @@ const getUserById = async (id) => {
   return user;
 };
 
+const createUser = async ({ name, email, password = 'Vintod123!', role = 'USER', city = 'Madrid' }) => {
+  const existingEmail = await usersRepo.findByEmail(email);
+  if (existingEmail) {
+    throw new AppError('El correo electrónico ya está registrado', 400);
+  }
+
+  let baseUsername = String(name)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_.-]/g, '');
+  if (!baseUsername || baseUsername.length < 3) {
+    baseUsername = email.split('@')[0].replace(/[^a-z0-9_.-]/gi, '');
+  }
+
+  let username = baseUsername;
+  const existingUsername = await profilesRepo.findByUsername(username);
+  if (existingUsername) {
+    username = `${baseUsername}_${Math.floor(100 + Math.random() * 900)}`;
+  }
+
+  const hashedPassword = await hashPassword(password);
+  const roleName = String(role || 'USER').toUpperCase().trim();
+  const roleEntity = await usersRepo.ensureRole(roleName, `Rol ${roleName} del sistema`);
+
+  return await usersRepo.createUserWithProfile({
+    email,
+    password: hashedPassword,
+    roleId: roleEntity.id,
+    profileData: {
+      username,
+      city: city || 'Madrid',
+    },
+  });
+};
+
 const setUserStatus = async (id, isActive) => {
   const user = await usersRepo.findById(id);
   if (!user) {
@@ -82,21 +120,29 @@ const setUserStatus = async (id, isActive) => {
   return await usersRepo.updateStatus(id, isActive);
 };
 
-const setUserRole = async (id, roleId) => {
+const setUserRole = async (id, rolePayload) => {
   const user = await usersRepo.findById(id);
   if (!user) {
     throw new AppError('Usuario no encontrado', 404);
   }
 
+  let targetRoleId = typeof rolePayload === 'string' ? rolePayload : rolePayload?.roleId;
+
+  if (!targetRoleId && rolePayload?.role) {
+    const roleName = String(rolePayload.role).toUpperCase().trim();
+    const roleEntity = await usersRepo.ensureRole(roleName, `Rol ${roleName} del sistema`);
+    targetRoleId = roleEntity.id;
+  }
+
   // Integridad referencial: Comprobar que el rol existe en base de datos
   const role = await prisma.role.findUnique({
-    where: { id: roleId },
+    where: { id: targetRoleId },
   });
   if (!role) {
     throw new AppError('El rol especificado no existe', 404);
   }
 
-  return await usersRepo.updateRole(id, roleId);
+  return await usersRepo.updateRole(id, targetRoleId);
 };
 
 /**
@@ -134,6 +180,7 @@ const restoreUser = async (id) => {
 module.exports = {
   listUsers,
   getUserById,
+  createUser,
   setUserStatus,
   setUserRole,
   deleteUser,

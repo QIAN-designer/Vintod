@@ -42,13 +42,27 @@ const updateUserRoleSchema = {
     id: z.string().regex(objectIdRegex, 'El ID debe ser un ObjectId de 24 caracteres hexadecimales'),
   }),
   body: z.object({
-    roleId: z.string().regex(objectIdRegex, 'roleId debe ser un ObjectId válido'),
+    roleId: z.string().regex(objectIdRegex, 'roleId debe ser un ObjectId válido').optional(),
+    role: z.string().min(1, 'El nombre del rol no puede estar vacío').optional(),
+  }).refine(data => data.roleId || data.role, {
+    message: 'Debes proporcionar roleId o role',
+  }),
+};
+
+const createUserAdminSchema = {
+  body: z.object({
+    name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    email: z.string().email('El email no es válido'),
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').optional().default('Vintod123!'),
+    role: z.string().optional().default('USER'),
+    city: z.string().optional().default('Madrid'),
   }),
 };
 
 module.exports = {
   mongoIdParamSchema,
   userQuerySchema,
+  createUserAdminSchema,
   updateUserStatusSchema,
   updateUserRoleSchema,
 };

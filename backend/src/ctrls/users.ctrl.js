@@ -2,7 +2,8 @@ const usersService = require('../services/users.service');
 
 const getAllUsers = async (req, res, next) => {
   try {
-    const result = await usersService.listUsers(req.query);
+    const query = req.query && Object.keys(req.query).length > 0 ? req.query : {};
+    const result = await usersService.listUsers(query);
     res.status(200).json({
       success: true,
       data: result.users,
@@ -25,6 +26,19 @@ const getUserById = async (req, res, next) => {
   }
 };
 
+const createUser = async (req, res, next) => {
+  try {
+    const user = await usersService.createUser(req.body);
+    res.status(201).json({
+      success: true,
+      data: user,
+      message: 'Usuario creado con éxito',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateUserStatus = async (req, res, next) => {
   try {
     const { isActive } = req.body;
@@ -41,8 +55,8 @@ const updateUserStatus = async (req, res, next) => {
 
 const updateUserRole = async (req, res, next) => {
   try {
-    const { roleId } = req.body;
-    const user = await usersService.setUserRole(req.params.id, roleId);
+    const { roleId, role } = req.body;
+    const user = await usersService.setUserRole(req.params.id, { roleId, role });
     res.status(200).json({
       success: true,
       data: user,
@@ -82,6 +96,7 @@ const restoreUser = async (req, res, next) => {
 module.exports = {
   getAllUsers,
   getUserById,
+  createUser,
   updateUserStatus,
   updateUserRole,
   deleteUser,

@@ -2,7 +2,8 @@ const brandsService = require('../services/brands.service');
 
 const getBrands = async (req, res, next) => {
   try {
-    const brands = await brandsService.getAllBrands(req.query);
+    const query = req.query && Object.keys(req.query).length > 0 ? req.query : {};
+    const brands = await brandsService.getAllBrands(query);
     res.status(200).json({
       success: true,
       count: brands.length,

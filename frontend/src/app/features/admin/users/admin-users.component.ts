@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, TemplateRef, inject, signal } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminStore } from '../../../core/services/admin.store';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -211,7 +211,7 @@ import { AppDatePipe } from '../../../shared/pipes/date.pipe';
     </div>
   `
 })
-export class AdminUsersComponent implements AfterViewInit {
+export class AdminUsersComponent implements OnInit, AfterViewInit {
   adminStore = inject(AdminStore);
   notifications = inject(NotificationService);
   fb = inject(FormBuilder);
@@ -227,6 +227,10 @@ export class AdminUsersComponent implements AfterViewInit {
   editingUser = signal<User | null>(null);
 
   columns: TableColumn[] = [];
+
+  ngOnInit() {
+    this.adminStore.loadUsers();
+  }
 
   ngAfterViewInit() {
     this.columns = [

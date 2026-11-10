@@ -21,10 +21,16 @@ export interface ProductVariant {
 export interface ProductQueryParams {
   search?: string;
   q?: string;
+  location?: string;
+  city?: string;
+  country?: string;
   brand?: string;
   brandId?: string;
   category?: string;
   categoryId?: string;
+  host?: string;
+  hostId?: string;
+  seller?: string;
   sellerId?: string;
   condition?: string;
   size?: string;
@@ -38,6 +44,7 @@ export interface ProductQueryParams {
   order?: 'asc' | 'desc';
   page?: number | string;
   limit?: number | string;
+  offset?: number | string;
 }
 
 export interface Product {

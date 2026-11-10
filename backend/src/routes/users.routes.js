@@ -6,6 +6,7 @@ const validate = require('../middlewares/validate.middleware');
 const {
   mongoIdParamSchema,
   userQuerySchema,
+  createUserAdminSchema,
   updateUserStatusSchema,
   updateUserRoleSchema,
 } = require('../schemas/user.schemas');
@@ -17,6 +18,9 @@ router.use(authenticateJWT, authorizeRoles('ADMIN'));
 
 // Listado de usuarios con paginación y filtro de estado (validado con Zod: search, location, role, limit, offset)
 router.get('/', validate(userQuerySchema), usersCtrl.getAllUsers);
+
+// Crear usuario desde el panel Admin
+router.post('/', validate(createUserAdminSchema), usersCtrl.createUser);
 
 // Detalle de un usuario específico
 router.get('/:id', validate(mongoIdParamSchema), usersCtrl.getUserById);

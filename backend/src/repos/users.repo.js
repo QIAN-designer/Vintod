@@ -29,6 +29,11 @@ const userSafeSelect = {
       ratingCount: true,
     },
   },
+  _count: {
+    select: {
+      products: true,
+    },
+  },
 };
 
 const buildDynamicWhere = ({ isActive, includeDeleted = false, search, location, role, roleId } = {}) => {

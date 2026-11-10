@@ -12,6 +12,8 @@ export interface ProductsState {
   error: string | null;
   hasLoaded: boolean;
   searchFilter: string;
+  locationFilter: string;
+  hostFilter: string;
   brandFilter: string;
   categoryFilter: string;
   conditionFilter: string;
@@ -42,6 +44,8 @@ export class ProductsStore {
     error: null,
     hasLoaded: false,
     searchFilter: '',
+    locationFilter: '',
+    hostFilter: '',
     brandFilter: '',
     categoryFilter: '',
     conditionFilter: '',
@@ -69,6 +73,8 @@ export class ProductsStore {
   readonly error = computed(() => this.state().error);
   readonly hasLoaded = computed(() => this.state().hasLoaded);
   readonly searchFilter = computed(() => this.state().searchFilter);
+  readonly locationFilter = computed(() => this.state().locationFilter);
+  readonly hostFilter = computed(() => this.state().hostFilter);
   readonly brandFilter = computed(() => this.state().brandFilter);
   readonly categoryFilter = computed(() => this.state().categoryFilter);
   readonly conditionFilter = computed(() => this.state().conditionFilter);
@@ -82,11 +88,13 @@ export class ProductsStore {
   readonly pagination = computed(() => this.state().pagination);
   readonly statusFilter = computed(() => this.state().statusFilter);
 
-  //Objeto reactivo con todos los query params actuales
+  //Objeto reactivo con todos los query params actuales (?key=value&key=value)
   readonly currentQueryParams = computed<ProductQueryParams>(() => {
     const s = this.state();
     const params: ProductQueryParams = {};
     if (s.searchFilter) params.search = s.searchFilter;
+    if (s.locationFilter) params.location = s.locationFilter;
+    if (s.hostFilter) params.host = s.hostFilter;
     if (s.brandFilter) params.brand = s.brandFilter;
     if (s.categoryFilter) params.category = s.categoryFilter;
     if (s.conditionFilter) params.condition = s.conditionFilter;
@@ -160,6 +168,8 @@ export class ProductsStore {
     this.state.update(s => ({
       ...s,
       searchFilter: params['search'] || params['q'] || '',
+      locationFilter: params['location'] || params['city'] || '',
+      hostFilter: params['host'] || params['seller'] || '',
       brandFilter: params['brand'] || '',
       categoryFilter: params['category'] || '',
       conditionFilter: params['condition'] || '',
@@ -174,7 +184,7 @@ export class ProductsStore {
   }
 
   /**
-   * Sincroniza los filtros actuales del Store en la URL del navegador (sync_url)
+   * Sincroniza los filtros actuales del Store en la URL del navegador (sync_url) en formato ?key=value&key=value
    */
   syncUrl(targetRoute?: string) {
     const queryParams = this.currentQueryParams();
@@ -191,6 +201,8 @@ export class ProductsStore {
   updateFilters(
     partial: Partial<{
       search: string;
+      location: string;
+      host: string;
       brand: string;
       category: string;
       condition: string;
@@ -208,6 +220,8 @@ export class ProductsStore {
       const resetPage =
         partial.page === undefined &&
         (partial.search !== undefined ||
+          partial.location !== undefined ||
+          partial.host !== undefined ||
           partial.brand !== undefined ||
           partial.category !== undefined ||
           partial.condition !== undefined ||
@@ -220,6 +234,8 @@ export class ProductsStore {
       return {
         ...s,
         searchFilter: partial.search !== undefined ? partial.search : s.searchFilter,
+        locationFilter: partial.location !== undefined ? partial.location : s.locationFilter,
+        hostFilter: partial.host !== undefined ? partial.host : s.hostFilter,
         brandFilter: partial.brand !== undefined ? partial.brand : s.brandFilter,
         categoryFilter: partial.category !== undefined ? partial.category : s.categoryFilter,
         conditionFilter: partial.condition !== undefined ? partial.condition : s.conditionFilter,
@@ -295,6 +311,8 @@ export class ProductsStore {
     this.state.update(s => ({
       ...s,
       searchFilter: '',
+      locationFilter: '',
+      hostFilter: '',
       brandFilter: '',
       categoryFilter: '',
       conditionFilter: '',

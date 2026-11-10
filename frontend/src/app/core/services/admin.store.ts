@@ -1,10 +1,15 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { User, Brand, Category, Condition, Order, DashboardStats } from '../models/marketplace.model';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { User, Brand, Category, Condition, Order } from '../models/marketplace.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminStore {
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+
   // Users state
   private usersSignal = signal<User[]>([
     {
@@ -295,38 +300,138 @@ export class AdminStore {
     this.ordersSignal().reduce((acc, order) => acc + (order.isActive ? order.totalAmount : 0), 0)
   );
 
-  // User Actions
+  // User Actions & Backend Sync
+  private mapBackendUser(u: any): User {
+    const roleRaw = (u.role?.name || u.role || 'USER').toLowerCase();
+    const validRole: 'admin' | 'moderator' | 'user' =
+      roleRaw === 'admin' ? 'admin' : roleRaw === 'moderator' ? 'moderator' : 'user';
+
+    const username = u.profile?.username || u.email?.split('@')[0] || 'Usuario';
+    const createdDate = u.createdAt ? String(u.createdAt).split('T')[0] : new Date().toISOString().split('T')[0];
+
+    return {
+      id: u.id,
+      name: username,
+      email: u.email,
+      role: validRole,
+      avatar:
+        u.profile?.avatarUrl ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=007782&color=fff`,
+      isActive: u.isActive ?? true,
+      city: u.profile?.city || 'España',
+      productsCount: u._count?.products ?? 0,
+      salesCount: u.profile?.ratingCount ?? 0,
+      rating: u.profile?.ratingAverage || 5.0,
+      createdAt: createdDate,
+    };
+  }
+
+  loadUsers() {
+    this.http.get<{ success: boolean; data: any[] }>(`${this.apiUrl}/users?limit=100`).subscribe({
+      next: (res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped = res.data.map((u) => this.mapBackendUser(u));
+          this.usersSignal.set(mapped);
+        }
+      },
+      error: (err) => {
+        console.error('Error cargando usuarios del backend:', err);
+      },
+    });
+  }
+
   toggleUserActive(id: string) {
-    this.usersSignal.update(users =>
-      users.map(u => u.id === id ? { ...u, isActive: !u.isActive } : u)
+    const target = this.usersSignal().find((u) => u.id === id);
+    if (!target) return;
+    const nextStatus = !target.isActive;
+
+    // Optimistic UI update
+    this.usersSignal.update((users) =>
+      users.map((u) => (u.id === id ? { ...u, isActive: nextStatus } : u))
     );
+
+    if (/^[0-9a-fA-F]{24}$/.test(id)) {
+      this.http.patch(`${this.apiUrl}/users/${id}/status`, { isActive: nextStatus }).subscribe({
+        error: () => {
+          // Revert on error
+          this.usersSignal.update((users) =>
+            users.map((u) => (u.id === id ? { ...u, isActive: !nextStatus } : u))
+          );
+        },
+      });
+    }
   }
 
   saveUser(user: Partial<User> & { name: string; email: string }) {
     if (user.id) {
-      this.usersSignal.update(users =>
-        users.map(u => u.id === user.id ? { ...u, ...user } as User : u)
+      // Optimistic local update
+      this.usersSignal.update((users) =>
+        users.map((u) => (u.id === user.id ? ({ ...u, ...user } as User) : u))
       );
+
+      if (/^[0-9a-fA-F]{24}$/.test(user.id)) {
+        if (user.role) {
+          this.http
+            .patch(`${this.apiUrl}/users/${user.id}/role`, { role: user.role.toUpperCase() })
+            .subscribe();
+        }
+        if (user.name || user.city) {
+          this.http
+            .patch(`${this.apiUrl}/profiles/${user.id}`, {
+              username: user.name.replace(/\s+/g, '_'),
+              city: user.city || 'Madrid',
+            })
+            .subscribe({
+              next: () => this.loadUsers(),
+            });
+        }
+      }
     } else {
-      const newUser: User = {
-        id: `usr_${Date.now()}`,
-        name: user.name,
-        email: user.email,
-        role: user.role || 'user',
-        avatar: user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
-        isActive: user.isActive ?? true,
-        city: user.city || 'Madrid',
-        productsCount: 0,
-        salesCount: 0,
-        rating: 5.0,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      this.usersSignal.update(users => [newUser, ...users]);
+      this.http
+        .post<{ success: boolean; data: any }>(`${this.apiUrl}/users`, {
+          name: user.name,
+          email: user.email,
+          role: (user.role || 'user').toUpperCase(),
+          city: user.city || 'Madrid',
+        })
+        .subscribe({
+          next: (res) => {
+            if (res.success && res.data) {
+              const created = this.mapBackendUser(res.data);
+              this.usersSignal.update((users) => [created, ...users]);
+            }
+          },
+          error: () => {
+            // Fallback local si falla
+            const newUser: User = {
+              id: `usr_${Date.now()}`,
+              name: user.name,
+              email: user.email,
+              role: user.role || 'user',
+              avatar:
+                user.avatar ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=007782&color=fff`,
+              isActive: user.isActive ?? true,
+              city: user.city || 'Madrid',
+              productsCount: 0,
+              salesCount: 0,
+              rating: 5.0,
+              createdAt: new Date().toISOString().split('T')[0],
+            };
+            this.usersSignal.update((users) => [newUser, ...users]);
+          },
+        });
     }
   }
 
   deleteUser(id: string) {
-    this.usersSignal.update(users => users.filter(u => u.id !== id));
+    this.usersSignal.update((users) => users.filter((u) => u.id !== id));
+
+    if (/^[0-9a-fA-F]{24}$/.test(id)) {
+      this.http.delete(`${this.apiUrl}/users/${id}`).subscribe({
+        error: () => this.loadUsers(),
+      });
+    }
   }
 
   // Brand Actions

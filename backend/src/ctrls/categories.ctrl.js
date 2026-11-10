@@ -2,7 +2,8 @@ const categoriesService = require('../services/categories.service');
 
 const getCategories = async (req, res, next) => {
   try {
-    const categories = await categoriesService.getAllCategories(req.query);
+    const query = req.query && Object.keys(req.query).length > 0 ? req.query : {};
+    const categories = await categoriesService.getAllCategories(query);
     res.status(200).json({
       success: true,
       count: categories.length,

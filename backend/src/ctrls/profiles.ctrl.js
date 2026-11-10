@@ -2,7 +2,8 @@ const profilesService = require('../services/profiles.service');
 
 const getProfiles = async (req, res, next) => {
   try {
-    const profiles = await profilesService.getAllProfiles(req.query);
+    const query = req.query && Object.keys(req.query).length > 0 ? req.query : {};
+    const profiles = await profilesService.getAllProfiles(query);
     res.status(200).json({
       success: true,
       count: profiles.length,
