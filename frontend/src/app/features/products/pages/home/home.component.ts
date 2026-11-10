@@ -131,58 +131,6 @@ import Swal from 'sweetalert2';
       <main class="w-full pt-24 bg-surface flex-1">
         <div class="max-w-[1280px] mx-auto px-margin-desktop py-space-lg flex flex-col gap-space-xl">
 
-          <!-- Hero Banner -->
-          <section class="relative w-full rounded-2xl bg-gradient-to-r from-surface-container via-surface-container-low to-primary-fixed/30 p-space-lg md:p-space-xl overflow-hidden shadow-sm">
-            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
-              <div class="lg:col-span-7 flex flex-col gap-space-md">
-                <div class="inline-flex items-center gap-2 bg-surface px-space-md py-1 rounded-full shadow-sm w-fit">
-                  <span class="inline-block w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
-                  <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Moda Circular Verificada</span>
-                </div>
-                <h1 class="font-display-hero text-display-hero text-on-surface leading-tight tracking-tight">
-                  Dale una segunda vida a tu ropa favorita.
-                </h1>
-                <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
-                  Explora categorías curadas, hubs de moda circular por ciudades y los armarios de nuestras mejores vendedoras y anfitrionas.
-                </p>
-                <div class="flex flex-wrap items-center gap-space-md pt-space-xs">
-                  <a
-                    routerLink="/shop"
-                    class="bg-primary-container hover:bg-primary text-on-primary font-label-lg text-label-lg px-space-xl py-3 rounded-full transition-all shadow-md flex items-center gap-2"
-                  >
-                    <span class="material-symbols-outlined text-[20px]">manage_search</span>
-                    <span>Explorar Tienda (Shop)</span>
-                  </a>
-                  <a
-                    routerLink="/products/new"
-                    class="bg-surface hover:bg-surface-container-highest text-on-surface font-label-lg text-label-lg px-space-lg py-3 rounded-full transition-all shadow-sm flex items-center gap-2"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                    <span>Subir prenda gratis</span>
-                  </a>
-                </div>
-              </div>
-
-              <div class="lg:col-span-5 flex flex-col gap-space-md">
-                <div class="bg-surface/95 backdrop-blur-md rounded-2xl p-space-lg shadow-sm flex flex-col gap-space-sm">
-                  <div class="flex items-center justify-between">
-                    <span class="font-label-md text-label-md text-on-surface-variant">Impacto colectivo en tiempo real</span>
-                    <span class="material-symbols-outlined text-secondary text-[22px]">eco</span>
-                  </div>
-                  <div class="flex items-baseline gap-2">
-                    <span class="font-display-hero text-headline-lg text-secondary font-extrabold tracking-tight">
-                      {{ ecoCounter().toLocaleString('es-ES') }}
-                    </span>
-                    <span class="font-headline-sm text-headline-sm text-on-surface">kg de CO₂</span>
-                  </div>
-                  <p class="font-body-sm text-body-sm text-outline">
-                    Ahorrados esta semana por compras de segunda mano en Vintod España.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
           <!-- 1. Carousel de Categorías (Categories Card) -->
           <section class="w-full">
             <app-carousel
