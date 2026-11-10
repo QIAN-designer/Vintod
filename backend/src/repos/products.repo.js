@@ -212,6 +212,33 @@ const buildDynamicWhere = (filters = {}, isDeleted = false) => {
 
     if (filters.sellerId) {
         andConditions.push({ sellerId: filters.sellerId });
+    } else if (filters.host) {
+        const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+        if (objectIdRegex.test(filters.host)) {
+            andConditions.push({ sellerId: filters.host });
+        } else {
+            andConditions.push({
+                seller: {
+                    OR: [
+                        { email: { contains: filters.host, mode: "insensitive" } },
+                        { profile: { username: { contains: filters.host, mode: "insensitive" } } },
+                    ],
+                },
+            });
+        }
+    }
+
+    if (filters.location) {
+        andConditions.push({
+            seller: {
+                profile: {
+                    OR: [
+                        { city: { contains: filters.location, mode: "insensitive" } },
+                        { country: { contains: filters.location, mode: "insensitive" } },
+                    ],
+                },
+            },
+        });
     }
 
     const variantConditions = {};

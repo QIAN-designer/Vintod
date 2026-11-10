@@ -2,10 +2,11 @@ const AppError = require('./utils/appError');
 const profilesRepo = require('../repos/profiles.repo');
 
 const getAllProfiles = async (query = {}) => {
-  const { search, q, city, country, minRating, sortBy = 'ratingAverage', order = 'desc', page, limit } = query;
+  const { search, q, location, city, country, host, minRating, sortBy = 'ratingAverage', order = 'desc', page, limit, offset } = query;
 
   const filters = {
-    search: (search || q || '').trim() || undefined,
+    search: (search || q || host || '').trim() || undefined,
+    location: location ? location.trim() : undefined,
     city: city ? city.trim() : undefined,
     country: country ? country.trim() : undefined,
   };
@@ -21,11 +22,16 @@ const getAllProfiles = async (query = {}) => {
 
   let skip;
   let take;
-  if (page !== undefined || limit !== undefined) {
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  if (offset !== undefined || page !== undefined || limit !== undefined) {
     const limitNum = Math.max(1, parseInt(limit, 10) || 20);
-    skip = (pageNum - 1) * limitNum;
     take = limitNum;
+
+    if (offset !== undefined && offset !== '') {
+      skip = Math.max(0, parseInt(offset, 10) || 0);
+    } else {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      skip = (pageNum - 1) * limitNum;
+    }
   }
 
   return profilesRepo.findAll({ filters, sortBy: sortField, order: sortOrder, skip, take });

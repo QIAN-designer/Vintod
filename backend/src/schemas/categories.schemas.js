@@ -10,6 +10,20 @@ const slugParamSchema = z.object({
   slug: z.string().min(1, 'El slug es obligatorio')
 });
 
+const categoryQuerySchema = z.object({
+  search: z.string().optional(),
+  q: z.string().optional(),
+  active: z.union([z.boolean(), z.enum(['true', 'false', ''])]).optional(),
+  isActive: z.union([z.boolean(), z.enum(['true', 'false', ''])]).optional(),
+  parentId: z.string().regex(mongoIdRegex, 'parentId debe ser un ObjectId válido').optional().or(z.literal('')),
+  rootOnly: z.union([z.boolean(), z.enum(['true', 'false', ''])]).optional(),
+  sortBy: z.enum(['name', 'createdAt', 'updatedAt']).optional(),
+  order: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
+  page: z.union([z.number(), z.string()]).optional(),
+  limit: z.union([z.number(), z.string()]).optional(),
+  offset: z.union([z.number(), z.string()]).optional()
+}).passthrough();
+
 const createCategorySchema = z.object({
   name: z.string().min(1, 'El nombre de la categoría es obligatorio').trim(),
   slug: z.string().min(1, 'El slug es obligatorio').trim().optional(),
@@ -27,7 +41,7 @@ const updateCategorySchema = z.object({
 module.exports = {
   idParamSchema,
   slugParamSchema,
+  categoryQuerySchema,
   createCategorySchema,
   updateCategorySchema
 };
-

@@ -31,7 +31,7 @@ const userSafeSelect = {
   },
 };
 
-const buildDynamicWhere = ({ isActive, includeDeleted = false, search, role, roleId } = {}) => {
+const buildDynamicWhere = ({ isActive, includeDeleted = false, search, location, role, roleId } = {}) => {
   const andConditions = [];
 
   if (!includeDeleted) {
@@ -52,6 +52,17 @@ const buildDynamicWhere = ({ isActive, includeDeleted = false, search, role, rol
     });
   }
 
+  if (location) {
+    andConditions.push({
+      profile: {
+        OR: [
+          { city: { contains: location, mode: 'insensitive' } },
+          { country: { contains: location, mode: 'insensitive' } },
+        ],
+      },
+    });
+  }
+
   if (search) {
     andConditions.push({
       OR: [
@@ -67,7 +78,7 @@ const buildDynamicWhere = ({ isActive, includeDeleted = false, search, role, rol
 };
 
 /**
- * Listado de usuarios con paginación y query dinámica (estado, rol, búsqueda, orden)
+ * Listado de usuarios con paginación y query dinámica (estado, rol, ubicación, búsqueda, orden)
  */
 const findAll = async ({
   skip = 0,
@@ -75,12 +86,13 @@ const findAll = async ({
   isActive,
   includeDeleted = false,
   search,
+  location,
   role,
   roleId,
   sortBy = 'createdAt',
   order = 'desc',
 } = {}) => {
-  const where = buildDynamicWhere({ isActive, includeDeleted, search, role, roleId });
+  const where = buildDynamicWhere({ isActive, includeDeleted, search, location, role, roleId });
 
   const [total, users] = await Promise.all([
     prisma.user.count({ where }),

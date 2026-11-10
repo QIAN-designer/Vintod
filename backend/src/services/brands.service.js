@@ -10,13 +10,13 @@ const generateSlug = (text) => {
 };
 
 const getAllBrands = async (query = {}) => {
-  const { active, isActive, search, q, sortBy = 'name', order = 'asc', page, limit } = query;
+  const { active, isActive, search, q, sortBy = 'name', order = 'asc', page, limit, offset } = query;
   const filters = {
     search: (search || q || '').trim() || undefined,
   };
 
   const rawActive = isActive !== undefined ? isActive : active;
-  if (rawActive !== undefined) {
+  if (rawActive !== undefined && rawActive !== '') {
     filters.isActive = rawActive === 'true' || rawActive === true;
   }
 
@@ -26,11 +26,16 @@ const getAllBrands = async (query = {}) => {
 
   let skip;
   let take;
-  if (page !== undefined || limit !== undefined) {
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  if (offset !== undefined || page !== undefined || limit !== undefined) {
     const limitNum = Math.max(1, parseInt(limit, 10) || 50);
-    skip = (pageNum - 1) * limitNum;
     take = limitNum;
+
+    if (offset !== undefined && offset !== '') {
+      skip = Math.max(0, parseInt(offset, 10) || 0);
+    } else {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      skip = (pageNum - 1) * limitNum;
+    }
   }
 
   return brandsRepo.findAll({ filters, sortBy: sortField, order: sortOrder, skip, take });

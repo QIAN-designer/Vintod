@@ -6,6 +6,7 @@ const validate = require('../middlewares/validate.middleware');
 const {
   idParamSchema,
   slugParamSchema,
+  categoryQuerySchema,
   createCategorySchema,
   updateCategorySchema
 } = require('../schemas/categories.schemas');
@@ -13,8 +14,8 @@ const { authenticateJWT } = require('../middlewares/auth.middleware');
 const { authorizeRoles } = require('../middlewares/rbac.middleware');
 
 // Rutas públicas de consulta
-// 1. Obtener todas las categorías
-router.get('/', categoriesCtrl.getCategories);
+// 1. Obtener todas las categorías (validado con Zod: search, limit, offset, etc.)
+router.get('/', validate({ query: categoryQuerySchema }), categoriesCtrl.getCategories);
 
 // 2. Obtener categoría por slug
 router.get(
@@ -64,4 +65,3 @@ router.delete(
 );
 
 module.exports = router;
-

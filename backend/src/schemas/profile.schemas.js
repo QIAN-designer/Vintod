@@ -1,8 +1,33 @@
 const { z } = require('zod');
 
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+
+const userIdParamSchema = {
+  params: z.object({
+    userId: z.string().regex(objectIdRegex, 'ID de usuario debe ser un ObjectId de 24 caracteres hexadecimales'),
+  }),
+};
+
+const profileQuerySchema = {
+  query: z.object({
+    search: z.string().optional(),
+    q: z.string().optional(),
+    location: z.string().optional(),
+    city: z.string().optional(),
+    country: z.string().optional(),
+    host: z.string().optional(),
+    minRating: z.union([z.number(), z.string()]).optional(),
+    sortBy: z.enum(['ratingAverage', 'ratingCount', 'createdAt', 'username']).optional(),
+    order: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
+    page: z.union([z.number(), z.string()]).optional(),
+    limit: z.union([z.number(), z.string()]).optional(),
+    offset: z.union([z.number(), z.string()]).optional(),
+  }).passthrough(),
+};
+
 const updateProfileSchema = {
   params: z.object({
-    userId: z.string().length(24, 'ID de usuario debe ser un ObjectId de 24 caracteres hexadecimales'),
+    userId: z.string().regex(objectIdRegex, 'ID de usuario debe ser un ObjectId de 24 caracteres hexadecimales'),
   }),
   body: z
     .object({
@@ -30,7 +55,8 @@ const getByUsernameSchema = {
 };
 
 module.exports = {
+  userIdParamSchema,
+  profileQuerySchema,
   updateProfileSchema,
   getByUsernameSchema,
 };
-

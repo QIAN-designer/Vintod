@@ -6,6 +6,7 @@ const validate = require('../middlewares/validate.middleware');
 const {
   idParamSchema,
   slugParamSchema,
+  brandQuerySchema,
   createBrandSchema,
   updateBrandSchema
 } = require('../schemas/brands.schemas');
@@ -13,8 +14,8 @@ const { authenticateJWT } = require('../middlewares/auth.middleware');
 const { authorizeRoles } = require('../middlewares/rbac.middleware');
 
 // Rutas públicas de consulta
-// 1. Obtener todas las marcas
-router.get('/', brandsCtrl.getBrands);
+// 1. Obtener todas las marcas (con validación de query Zod: search, limit, offset, etc.)
+router.get('/', validate({ query: brandQuerySchema }), brandsCtrl.getBrands);
 
 // 2. Obtener marca por slug
 router.get(
@@ -64,4 +65,3 @@ router.delete(
 );
 
 module.exports = router;
-

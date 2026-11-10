@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const productsCtrl = require('../ctrls/products.ctrl');
 
@@ -6,6 +6,7 @@ const validate = require('../middlewares/validate.middleware');
 const {
   idParamSchema,
   slugParamSchema,
+  productQuerySchema,
   createProductSchema,
   updateProductSchema
 } = require('../schemas/products.schemas');
@@ -14,11 +15,11 @@ const { authorizeRoles } = require('../middlewares/rbac.middleware');
 const { authorizeProductModification } = require('../middlewares/abac.middleware');
 
 // 1. Rutas específicas (DEBEN ir ANTES de las rutas con parámetro dinámico :id)
-// Catálogo general activo
-router.get('/', productsCtrl.getProducts);
+// Catálogo general activo (con validación de query: search, location, category, host, limit, offset, etc.)
+router.get('/', validate({ query: productQuerySchema }), productsCtrl.getProducts);
 
 // Backoffice / Papelera de productos eliminados
-router.get('/deleted', productsCtrl.getDeletedProducts);
+router.get('/deleted', validate({ query: productQuerySchema }), productsCtrl.getDeletedProducts);
 
 // Búsqueda por slug
 router.get('/slug/:slug', validate({ params: slugParamSchema }), productsCtrl.getProductBySlug);

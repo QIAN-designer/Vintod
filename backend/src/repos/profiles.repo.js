@@ -1,29 +1,40 @@
 const { prisma } = require('../config/db');
 
 const buildDynamicWhere = (filters = {}) => {
-  const where = {};
+  const andConditions = [];
 
-  if (filters.city) {
-    where.city = { equals: filters.city, mode: 'insensitive' };
-  }
-
-  if (filters.country) {
-    where.country = { equals: filters.country, mode: 'insensitive' };
+  if (filters.location) {
+    andConditions.push({
+      OR: [
+        { city: { contains: filters.location, mode: 'insensitive' } },
+        { country: { contains: filters.location, mode: 'insensitive' } },
+      ],
+    });
+  } else {
+    if (filters.city) {
+      andConditions.push({ city: { equals: filters.city, mode: 'insensitive' } });
+    }
+    if (filters.country) {
+      andConditions.push({ country: { equals: filters.country, mode: 'insensitive' } });
+    }
   }
 
   if (filters.minRating !== undefined) {
-    where.ratingAverage = { gte: filters.minRating };
+    andConditions.push({ ratingAverage: { gte: filters.minRating } });
   }
 
   if (filters.search) {
-    where.OR = [
-      { username: { contains: filters.search, mode: 'insensitive' } },
-      { bio: { contains: filters.search, mode: 'insensitive' } },
-      { city: { contains: filters.search, mode: 'insensitive' } },
-    ];
+    andConditions.push({
+      OR: [
+        { username: { contains: filters.search, mode: 'insensitive' } },
+        { bio: { contains: filters.search, mode: 'insensitive' } },
+        { city: { contains: filters.search, mode: 'insensitive' } },
+      ],
+    });
   }
 
-  return where;
+  if (andConditions.length === 0) return {};
+  return andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
 };
 
 const findAll = async ({ filters = {}, sortBy = 'ratingAverage', order = 'desc', skip, take } = {}) => {

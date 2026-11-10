@@ -3,12 +3,17 @@ const router = express.Router();
 
 const profilesCtrl = require('../ctrls/profiles.ctrl');
 const validate = require('../middlewares/validate.middleware');
-const { updateProfileSchema, getByUsernameSchema } = require('../schemas/profile.schemas');
+const {
+  userIdParamSchema,
+  profileQuerySchema,
+  updateProfileSchema,
+  getByUsernameSchema
+} = require('../schemas/profile.schemas');
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 const { authorizeProfileModification } = require('../middlewares/abac.middleware');
 
-// Listado/búsqueda de perfiles con filtros dinámicos (req.query)
-router.get('/', profilesCtrl.getProfiles);
+// Listado/búsqueda de perfiles con filtros dinámicos validados por Zod (search, location, host, limit, offset)
+router.get('/', validate(profileQuerySchema), profilesCtrl.getProfiles);
 
 // Perfil del usuario autenticado
 router.get('/me', authenticateJWT, profilesCtrl.getMyProfile);
@@ -16,8 +21,8 @@ router.get('/me', authenticateJWT, profilesCtrl.getMyProfile);
 // Perfil público por username
 router.get('/u/:username', validate(getByUsernameSchema), profilesCtrl.getProfileByUsername);
 
-// Perfil por userId
-router.get('/:userId', profilesCtrl.getProfileByUserId);
+// Perfil por userId (validado con Zod)
+router.get('/:userId', validate(userIdParamSchema), profilesCtrl.getProfileByUserId);
 
 // Modificación parcial de perfil protegida por ABAC (Solo el dueño o ADMIN)
 router.patch(

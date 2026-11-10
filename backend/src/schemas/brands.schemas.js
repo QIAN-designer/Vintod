@@ -10,6 +10,18 @@ const slugParamSchema = z.object({
   slug: z.string().min(1, 'El slug es obligatorio')
 });
 
+const brandQuerySchema = z.object({
+  search: z.string().optional(),
+  q: z.string().optional(),
+  active: z.union([z.boolean(), z.enum(['true', 'false', ''])]).optional(),
+  isActive: z.union([z.boolean(), z.enum(['true', 'false', ''])]).optional(),
+  sortBy: z.enum(['name', 'createdAt', 'updatedAt']).optional(),
+  order: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
+  page: z.union([z.number(), z.string()]).optional(),
+  limit: z.union([z.number(), z.string()]).optional(),
+  offset: z.union([z.number(), z.string()]).optional()
+}).passthrough();
+
 const createBrandSchema = z.object({
   name: z.string().min(1, 'El nombre de la marca es obligatorio').trim(),
   slug: z.string().min(1, 'El slug es obligatorio').trim().optional(),
@@ -29,7 +41,7 @@ const updateBrandSchema = z.object({
 module.exports = {
   idParamSchema,
   slugParamSchema,
+  brandQuerySchema,
   createBrandSchema,
   updateBrandSchema
 };
-

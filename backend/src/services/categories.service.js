@@ -10,7 +10,7 @@ const generateSlug = (text) => {
 };
 
 const getAllCategories = async (query = {}) => {
-  const { active, isActive, search, q, parentId, rootOnly, sortBy = 'name', order = 'asc', page, limit } = query;
+  const { active, isActive, search, q, parentId, rootOnly, sortBy = 'name', order = 'asc', page, limit, offset } = query;
   const filters = {
     search: (search || q || '').trim() || undefined,
     parentId: parentId ? parentId.trim() : undefined,
@@ -18,7 +18,7 @@ const getAllCategories = async (query = {}) => {
   };
 
   const rawActive = isActive !== undefined ? isActive : active;
-  if (rawActive !== undefined) {
+  if (rawActive !== undefined && rawActive !== '') {
     filters.isActive = rawActive === 'true' || rawActive === true;
   }
 
@@ -28,11 +28,16 @@ const getAllCategories = async (query = {}) => {
 
   let skip;
   let take;
-  if (page !== undefined || limit !== undefined) {
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  if (offset !== undefined || page !== undefined || limit !== undefined) {
     const limitNum = Math.max(1, parseInt(limit, 10) || 50);
-    skip = (pageNum - 1) * limitNum;
     take = limitNum;
+
+    if (offset !== undefined && offset !== '') {
+      skip = Math.max(0, parseInt(offset, 10) || 0);
+    } else {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      skip = (pageNum - 1) * limitNum;
+    }
   }
 
   return categoriesRepo.findAll({ filters, sortBy: sortField, order: sortOrder, skip, take });

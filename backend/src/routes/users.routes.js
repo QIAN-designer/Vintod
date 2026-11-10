@@ -5,6 +5,7 @@ const usersCtrl = require('../ctrls/users.ctrl');
 const validate = require('../middlewares/validate.middleware');
 const {
   mongoIdParamSchema,
+  userQuerySchema,
   updateUserStatusSchema,
   updateUserRoleSchema,
 } = require('../schemas/user.schemas');
@@ -14,8 +15,8 @@ const { authorizeRoles } = require('../middlewares/rbac.middleware');
 // Todas las rutas de administración de usuarios requieren autenticación y rol ADMIN
 router.use(authenticateJWT, authorizeRoles('ADMIN'));
 
-// Listado de usuarios con paginación y filtro de estado
-router.get('/', usersCtrl.getAllUsers);
+// Listado de usuarios con paginación y filtro de estado (validado con Zod: search, location, role, limit, offset)
+router.get('/', validate(userQuerySchema), usersCtrl.getAllUsers);
 
 // Detalle de un usuario específico
 router.get('/:id', validate(mongoIdParamSchema), usersCtrl.getUserById);

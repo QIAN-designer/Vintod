@@ -5,10 +5,16 @@ const getAllProducts = async (query = {}) => {
     const {
         search,
         q,
+        location,
+        city,
+        country,
         brand,
         brandId,
         category,
         categoryId,
+        host,
+        hostId,
+        seller,
         sellerId,
         condition,
         size,
@@ -22,15 +28,18 @@ const getAllProducts = async (query = {}) => {
         order = "desc",
         page,
         limit,
+        offset,
     } = query;
 
     const filters = {
         search: (search || q || "").trim() || undefined,
+        location: (location || city || country || "").trim() || undefined,
         brand: brand ? brand.trim() : undefined,
         brandId: brandId ? brandId.trim() : undefined,
         category: category ? category.trim() : undefined,
         categoryId: categoryId ? categoryId.trim() : undefined,
-        sellerId: sellerId ? sellerId.trim() : undefined,
+        host: (host || seller || "").trim() || undefined,
+        sellerId: (sellerId || hostId || "").trim() || undefined,
         condition: condition ? condition.trim() : undefined,
         size: size ? size.trim() : undefined,
         color: color ? color.trim() : undefined,
@@ -60,11 +69,16 @@ const getAllProducts = async (query = {}) => {
 
     let skip;
     let take;
-    if (page !== undefined || limit !== undefined) {
-        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    if (offset !== undefined || page !== undefined || limit !== undefined) {
         const limitNum = Math.max(1, parseInt(limit, 10) || 20);
-        skip = (pageNum - 1) * limitNum;
         take = limitNum;
+
+        if (offset !== undefined && offset !== "") {
+            skip = Math.max(0, parseInt(offset, 10) || 0);
+        } else {
+            const pageNum = Math.max(1, parseInt(page, 10) || 1);
+            skip = (pageNum - 1) * limitNum;
+        }
     }
 
     const { products, total } = await productsRepo.findAll({
@@ -77,11 +91,13 @@ const getAllProducts = async (query = {}) => {
 
     const result = { products };
     if (take !== undefined) {
-        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const currentSkip = skip || 0;
+        const pageNum = Math.floor(currentSkip / take) + 1;
         result.pagination = {
             total,
             page: pageNum,
             limit: take,
+            offset: currentSkip,
             totalPages: Math.ceil(total / take),
         };
     }

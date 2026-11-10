@@ -6,20 +6,29 @@ const listUsers = async (query = {}) => {
   const {
     page = 1,
     limit = 20,
+    offset,
     isActive,
     active,
     includeDeleted,
     search,
     q,
+    location,
+    city,
+    country,
     role,
     roleId,
     sortBy = 'createdAt',
     order = 'desc',
   } = query;
 
-  const pageNum = Math.max(1, Number(page) || 1);
   const take = Math.max(1, Number(limit) || 20);
-  const skip = (pageNum - 1) * take;
+  let skip;
+  if (offset !== undefined && offset !== '') {
+    skip = Math.max(0, Number(offset) || 0);
+  } else {
+    const pageNum = Math.max(1, Number(page) || 1);
+    skip = (pageNum - 1) * take;
+  }
 
   let activeFilter;
   const rawActive = isActive !== undefined ? isActive : active;
@@ -36,18 +45,22 @@ const listUsers = async (query = {}) => {
     isActive: activeFilter,
     includeDeleted: includeDeleted === 'true' || includeDeleted === true,
     search: (search || q || '').trim() || undefined,
+    location: (location || city || country || '').trim() || undefined,
     role: role ? role.trim() : undefined,
     roleId: roleId ? roleId.trim() : undefined,
     sortBy: sortField,
     order: sortOrder,
   });
 
+  const currentPage = Math.floor(skip / take) + 1;
+
   return {
     users,
     pagination: {
       total,
-      page: pageNum,
+      page: currentPage,
       limit: take,
+      offset: skip,
       totalPages: Math.ceil(total / take),
     },
   };
