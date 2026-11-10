@@ -1,13 +1,14 @@
 const productsService = require('../services/products.service');
 
-// Capa de controlador: recibe req, llama al servicio y devuelve res
+// Capa de controlador: recibe req (incluyendo req.query), llama al servicio y devuelve res
 const getProducts = async (req, res, next) => {
   try {
-    const products = await productsService.getAllProducts();
+    const result = await productsService.getAllProducts(req.query);
     res.status(200).json({
       success: true,
-      count: products.length,
-      data: products
+      count: result.products.length,
+      data: result.products,
+      ...(result.pagination ? { pagination: result.pagination } : {})
     });
   } catch (error) {
     next(error);
@@ -16,7 +17,7 @@ const getProducts = async (req, res, next) => {
 
 const getDeletedProducts = async (req, res, next) => {
   try {
-    const products = await productsService.getDeletedProducts();
+    const products = await productsService.getDeletedProducts(req.query);
     res.status(200).json({
       success: true,
       count: products.length,

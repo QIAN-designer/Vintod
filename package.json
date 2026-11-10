@@ -1,0 +1,9 @@
+{
+  "name": "vintod-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js"
+  }
+}

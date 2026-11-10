@@ -2,27 +2,52 @@ const AppError = require('./utils/appError');
 const usersRepo = require('../repos/users.repo');
 const { prisma } = require('../config/db');
 
-const listUsers = async ({ page = 1, limit = 20, isActive, includeDeleted }) => {
-  const skip = (Math.max(1, Number(page)) - 1) * Number(limit);
-  const take = Number(limit);
+const listUsers = async (query = {}) => {
+  const {
+    page = 1,
+    limit = 20,
+    isActive,
+    active,
+    includeDeleted,
+    search,
+    q,
+    role,
+    roleId,
+    sortBy = 'createdAt',
+    order = 'desc',
+  } = query;
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const take = Math.max(1, Number(limit) || 20);
+  const skip = (pageNum - 1) * take;
 
   let activeFilter;
-  if (isActive === 'true') activeFilter = true;
-  if (isActive === 'false') activeFilter = false;
+  const rawActive = isActive !== undefined ? isActive : active;
+  if (rawActive === 'true' || rawActive === true) activeFilter = true;
+  if (rawActive === 'false' || rawActive === false) activeFilter = false;
+
+  const allowedSortFields = ['createdAt', 'updatedAt', 'email'];
+  const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+  const sortOrder = String(order).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
   const { total, users } = await usersRepo.findAll({
     skip,
     take,
     isActive: activeFilter,
-    includeDeleted: includeDeleted === 'true',
+    includeDeleted: includeDeleted === 'true' || includeDeleted === true,
+    search: (search || q || '').trim() || undefined,
+    role: role ? role.trim() : undefined,
+    roleId: roleId ? roleId.trim() : undefined,
+    sortBy: sortField,
+    order: sortOrder,
   });
 
   return {
     users,
     pagination: {
       total,
-      page: Number(page),
-      limit: Number(limit),
+      page: pageNum,
+      limit: take,
       totalPages: Math.ceil(total / take),
     },
   };

@@ -118,7 +118,7 @@ const mapProduct = product => {
         category: category ? category.name : "",
         categoryId: product.categoryId,
         sellerId: product.sellerId,
-        sellerName: seller ? (seller.profile ? seller.profile.username : (seller.username || "")) : "",
+        sellerName: seller ? (seller.profile ? seller.profile.username : seller.username || "") : "",
         // Relaciones completas embebidas
         variants: variants || [],
         brandInfo: brand || null,
@@ -154,18 +154,131 @@ const handleNotFound = async promise => {
     }
 };
 
-const findAll = async () => {
-    const products = await prisma.product.findMany({
-        where: { OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }] },
-        include: productInclude,
-        orderBy: { createdAt: "desc" },
-    });
-    return products.map(mapProduct);
+const buildDynamicWhere = (filters = {}, isDeleted = false) => {
+    const andConditions = [];
+
+    if (isDeleted) {
+        andConditions.push({ deletedAt: { not: null } });
+    } else {
+        andConditions.push({
+            OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+        });
+    }
+
+    if (filters.search) {
+        andConditions.push({
+            OR: [
+                { title: { contains: filters.search, mode: "insensitive" } },
+                { description: { contains: filters.search, mode: "insensitive" } },
+                { brand: { name: { contains: filters.search, mode: "insensitive" } } },
+                { category: { name: { contains: filters.search, mode: "insensitive" } } },
+            ],
+        });
+    }
+
+    if (typeof filters.isActive === "boolean") {
+        andConditions.push({ isActive: filters.isActive });
+    }
+
+    if (filters.status) {
+        andConditions.push({ status: filters.status });
+    }
+
+    if (filters.brandId) {
+        andConditions.push({ brandId: filters.brandId });
+    } else if (filters.brand) {
+        andConditions.push({
+            brand: {
+                OR: [
+                    { name: { equals: filters.brand, mode: "insensitive" } },
+                    { slug: { equals: filters.brand, mode: "insensitive" } },
+                ],
+            },
+        });
+    }
+
+    if (filters.categoryId) {
+        andConditions.push({ categoryId: filters.categoryId });
+    } else if (filters.category) {
+        andConditions.push({
+            category: {
+                OR: [
+                    { name: { equals: filters.category, mode: "insensitive" } },
+                    { slug: { equals: filters.category, mode: "insensitive" } },
+                ],
+            },
+        });
+    }
+
+    if (filters.sellerId) {
+        andConditions.push({ sellerId: filters.sellerId });
+    }
+
+    const variantConditions = {};
+    if (filters.condition) {
+        variantConditions.condition = { equals: filters.condition, mode: "insensitive" };
+    }
+    if (filters.size) {
+        variantConditions.size = { equals: filters.size, mode: "insensitive" };
+    }
+    if (filters.color) {
+        variantConditions.color = { contains: filters.color, mode: "insensitive" };
+    }
+    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+        variantConditions.price = {};
+        if (filters.minPrice !== undefined) variantConditions.price.gte = filters.minPrice;
+        if (filters.maxPrice !== undefined) variantConditions.price.lte = filters.maxPrice;
+    }
+
+    if (Object.keys(variantConditions).length > 0) {
+        andConditions.push({
+            variants: {
+                some: variantConditions,
+            },
+        });
+    }
+
+    return andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
 };
 
-const findDeleted = async () => {
+const findAll = async (options = {}) => {
+    const { filters = {}, sortBy = "createdAt", order = "desc", skip, take } = options;
+
+    const where = buildDynamicWhere(filters, false);
+
+    // Si ordena por price (que reside en la variante), ordenamos en memoria o por createdAt en DB
+    const dbOrderBy = sortBy === "price" ? { createdAt: "desc" } : { [sortBy]: order };
+
+    const queryOptions = {
+        where,
+        include: productInclude,
+        orderBy: dbOrderBy,
+    };
+
+    if (skip !== undefined && sortBy !== "price") queryOptions.skip = Number(skip);
+    if (take !== undefined && sortBy !== "price") queryOptions.take = Number(take);
+
+    const [total, rawProducts] = await Promise.all([
+        prisma.product.count({ where }),
+        prisma.product.findMany(queryOptions),
+    ]);
+
+    let mapped = rawProducts.map(mapProduct);
+
+    if (sortBy === "price") {
+        mapped.sort((a, b) => (order === "asc" ? a.price - b.price : b.price - a.price));
+        if (skip !== undefined && take !== undefined) {
+            mapped = mapped.slice(Number(skip), Number(skip) + Number(take));
+        }
+    }
+
+    return { products: mapped, total };
+};
+
+const findDeleted = async (filters = {}) => {
+    const where = buildDynamicWhere(filters, true);
     const products = await prisma.product.findMany({
-        where: { deletedAt: { not: null } },
+        where,
         include: productInclude,
         orderBy: { updatedAt: "desc" },
     });
@@ -332,7 +445,13 @@ const update = async (id, productData) => {
     });
 
     // Si se actualizan precio, talla o condición, actualizar la variante principal
-    if (price !== undefined || size !== undefined || condition !== undefined || color !== undefined || stock !== undefined) {
+    if (
+        price !== undefined ||
+        size !== undefined ||
+        condition !== undefined ||
+        color !== undefined ||
+        stock !== undefined
+    ) {
         const primaryVariant = existing.variants[0];
         if (primaryVariant) {
             const variantUpdate = {};

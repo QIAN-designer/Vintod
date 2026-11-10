@@ -31,19 +31,56 @@ const userSafeSelect = {
   },
 };
 
-/**
- * Listado de usuarios con paginación y filtro de estado/eliminados
- */
-const findAll = async ({ skip = 0, take = 20, isActive, includeDeleted = false }) => {
-  const where = {};
-  
+const buildDynamicWhere = ({ isActive, includeDeleted = false, search, role, roleId } = {}) => {
+  const andConditions = [];
+
   if (!includeDeleted) {
-    where.OR = [{ deletedAt: null }, { deletedAt: { isSet: false } }];
+    andConditions.push({
+      OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
+    });
   }
 
   if (typeof isActive === 'boolean') {
-    where.isActive = isActive;
+    andConditions.push({ isActive });
   }
+
+  if (roleId) {
+    andConditions.push({ roleId });
+  } else if (role) {
+    andConditions.push({
+      role: { name: { equals: role, mode: 'insensitive' } },
+    });
+  }
+
+  if (search) {
+    andConditions.push({
+      OR: [
+        { email: { contains: search, mode: 'insensitive' } },
+        { profile: { username: { contains: search, mode: 'insensitive' } } },
+        { profile: { city: { contains: search, mode: 'insensitive' } } },
+      ],
+    });
+  }
+
+  if (andConditions.length === 0) return {};
+  return andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
+};
+
+/**
+ * Listado de usuarios con paginación y query dinámica (estado, rol, búsqueda, orden)
+ */
+const findAll = async ({
+  skip = 0,
+  take = 20,
+  isActive,
+  includeDeleted = false,
+  search,
+  role,
+  roleId,
+  sortBy = 'createdAt',
+  order = 'desc',
+} = {}) => {
+  const where = buildDynamicWhere({ isActive, includeDeleted, search, role, roleId });
 
   const [total, users] = await Promise.all([
     prisma.user.count({ where }),
@@ -51,7 +88,7 @@ const findAll = async ({ skip = 0, take = 20, isActive, includeDeleted = false }
       where,
       skip: Number(skip),
       take: Number(take),
-      orderBy: { createdAt: 'desc' },
+      orderBy: { [sortBy]: order },
       select: userSafeSelect,
     }),
   ]);

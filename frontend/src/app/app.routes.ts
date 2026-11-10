@@ -10,17 +10,40 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'products',
-        pathMatch: 'full'
+        loadComponent: () => import('./features/products/pages/home/home.component').then(m => m.HomeComponent)
       },
-      // Rutas públicas de catálogo
+      {
+        path: 'home',
+        loadComponent: () => import('./features/products/pages/home/home.component').then(m => m.HomeComponent)
+      },
+      // Rutas públicas de catálogo (Shop / List)
+      {
+        path: 'shop',
+        loadComponent: () => import('./features/products/pages/product-list/product-list.component').then(m => m.ProductListComponent)
+      },
       {
         path: 'products',
         loadComponent: () => import('./features/products/pages/product-list/product-list.component').then(m => m.ProductListComponent)
       },
+      // Rutas protegidas por authGuard (publicar prenda debe ir antes de :id)
+      {
+        path: 'products/new',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/products/pages/product-create/product-create.component').then(m => m.ProductCreatePageComponent)
+      },
+      // Detalle por slug o id
       {
         path: 'products/:id',
         loadComponent: () => import('./features/products/pages/product-detail/product-detail.component').then(m => m.ProductDetailComponent)
+      },
+      {
+        path: 'shop/:slug',
+        loadComponent: () => import('./features/products/pages/product-detail/product-detail.component').then(m => m.ProductDetailComponent)
+      },
+      {
+        path: 'products/:id/edit',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/products/pages/product-edit/product-edit.component').then(m => m.ProductEditPageComponent)
       },
       // Rutas de autenticación públicas
       {
@@ -36,17 +59,6 @@ export const routes: Routes = [
         path: 'profile',
         canActivate: [authGuard],
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfilePageComponent)
-      },
-      // Rutas protegidas por authGuard (publicar y editar prendas)
-      {
-        path: 'products/new',
-        canActivate: [authGuard],
-        loadComponent: () => import('./features/products/pages/product-create/product-create.component').then(m => m.ProductCreatePageComponent)
-      },
-      {
-        path: 'products/:id/edit',
-        canActivate: [authGuard],
-        loadComponent: () => import('./features/products/pages/product-edit/product-edit.component').then(m => m.ProductEditPageComponent)
       }
     ]
   },

@@ -1,5 +1,18 @@
 const profilesService = require('../services/profiles.service');
 
+const getProfiles = async (req, res, next) => {
+  try {
+    const profiles = await profilesService.getAllProfiles(req.query);
+    res.status(200).json({
+      success: true,
+      count: profiles.length,
+      data: profiles,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getMyProfile = async (req, res, next) => {
   try {
     const profile = await profilesService.getProfileByUserId(req.user.id);
@@ -50,6 +63,7 @@ const updateProfile = async (req, res, next) => {
 };
 
 module.exports = {
+  getProfiles,
   getMyProfile,
   getProfileByUsername,
   getProfileByUserId,

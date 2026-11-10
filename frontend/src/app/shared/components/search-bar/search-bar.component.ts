@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -7,46 +7,70 @@ import { FormsModule } from '@angular/forms';
   imports: [FormsModule],
   template: `
     <div class="relative w-full">
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-outline">
+        <span class="material-symbols-outlined text-[20px]">search</span>
       </div>
       <input
         type="text"
         [placeholder]="placeholder"
         [ngModel]="searchTerm"
         (ngModelChange)="onSearchChange($event)"
-        class="block w-full pl-9 pr-8 py-2 text-sm bg-white border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-vinted focus:border-vinted"
+        (keyup.enter)="emitImmediate()"
+        class="block w-full pl-10 pr-10 py-2.5 text-sm bg-surface-container-low border border-outline-variant/40 rounded-full text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition-all"
       />
       @if (searchTerm) {
         <button
           type="button"
           (click)="clear()"
-          class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline hover:text-on-surface cursor-pointer"
           title="Borrar búsqueda"
         >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       }
     </div>
   `
 })
-export class SearchBarComponent {
-  @Input() placeholder = 'Buscar...';
+export class SearchBarComponent implements OnDestroy {
+  @Input() placeholder = 'Buscar ropa, marcas o artículos...';
   @Input() searchTerm = '';
+  @Input() debounceMs = 350;
   @Output() searchChange = new EventEmitter<string>();
+
+  private debounceTimer: any = null;
 
   onSearchChange(val: string) {
     this.searchTerm = val;
-    this.searchChange.emit(val);
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    if (this.debounceMs > 0) {
+      this.debounceTimer = setTimeout(() => {
+        this.searchChange.emit(this.searchTerm);
+      }, this.debounceMs);
+    } else {
+      this.searchChange.emit(this.searchTerm);
+    }
+  }
+
+  emitImmediate() {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.searchChange.emit(this.searchTerm);
   }
 
   clear() {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
     this.searchTerm = '';
     this.searchChange.emit('');
   }
-}
 
+  ngOnDestroy() {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+  }
+}

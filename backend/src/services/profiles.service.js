@@ -1,6 +1,36 @@
 const AppError = require('./utils/appError');
 const profilesRepo = require('../repos/profiles.repo');
 
+const getAllProfiles = async (query = {}) => {
+  const { search, q, city, country, minRating, sortBy = 'ratingAverage', order = 'desc', page, limit } = query;
+
+  const filters = {
+    search: (search || q || '').trim() || undefined,
+    city: city ? city.trim() : undefined,
+    country: country ? country.trim() : undefined,
+  };
+
+  if (minRating !== undefined && minRating !== '') {
+    const parsed = parseFloat(minRating);
+    if (!Number.isNaN(parsed)) filters.minRating = parsed;
+  }
+
+  const allowedSortFields = ['ratingAverage', 'ratingCount', 'createdAt', 'username'];
+  const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'ratingAverage';
+  const sortOrder = String(order).toLowerCase() === 'asc' ? 'asc' : 'desc';
+
+  let skip;
+  let take;
+  if (page !== undefined || limit !== undefined) {
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 20);
+    skip = (pageNum - 1) * limitNum;
+    take = limitNum;
+  }
+
+  return profilesRepo.findAll({ filters, sortBy: sortField, order: sortOrder, skip, take });
+};
+
 const getProfileByUserId = async (userId) => {
   const profile = await profilesRepo.findByUserId(userId);
   if (!profile) {
@@ -31,6 +61,7 @@ const updateProfile = async (userId, data) => {
 };
 
 module.exports = {
+  getAllProfiles,
   getProfileByUserId,
   getProfileByUsername,
   updateProfile,

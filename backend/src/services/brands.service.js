@@ -10,11 +10,30 @@ const generateSlug = (text) => {
 };
 
 const getAllBrands = async (query = {}) => {
-  const filter = {};
-  if (query.active !== undefined) {
-    filter.isActive = query.active === 'true';
+  const { active, isActive, search, q, sortBy = 'name', order = 'asc', page, limit } = query;
+  const filters = {
+    search: (search || q || '').trim() || undefined,
+  };
+
+  const rawActive = isActive !== undefined ? isActive : active;
+  if (rawActive !== undefined) {
+    filters.isActive = rawActive === 'true' || rawActive === true;
   }
-  return brandsRepo.findAll(filter);
+
+  const allowedSortFields = ['name', 'createdAt', 'updatedAt'];
+  const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'name';
+  const sortOrder = String(order).toLowerCase() === 'desc' ? 'desc' : 'asc';
+
+  let skip;
+  let take;
+  if (page !== undefined || limit !== undefined) {
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 50);
+    skip = (pageNum - 1) * limitNum;
+    take = limitNum;
+  }
+
+  return brandsRepo.findAll({ filters, sortBy: sortField, order: sortOrder, skip, take });
 };
 
 const getBrandById = async (id) => {

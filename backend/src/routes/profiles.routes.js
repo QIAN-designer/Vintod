@@ -7,6 +7,9 @@ const { updateProfileSchema, getByUsernameSchema } = require('../schemas/profile
 const { authenticateJWT } = require('../middlewares/auth.middleware');
 const { authorizeProfileModification } = require('../middlewares/abac.middleware');
 
+// Listado/búsqueda de perfiles con filtros dinámicos (req.query)
+router.get('/', profilesCtrl.getProfiles);
+
 // Perfil del usuario autenticado
 router.get('/me', authenticateJWT, profilesCtrl.getMyProfile);
 
