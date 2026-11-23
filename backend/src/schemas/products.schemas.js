@@ -33,7 +33,7 @@ const productQuerySchema = z.object({
   isActive: z.union([z.boolean(), z.enum(['true', 'false', ''])]).optional(),
   minPrice: z.union([z.number(), z.string()]).optional(),
   maxPrice: z.union([z.number(), z.string()]).optional(),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'title', 'viewsCount', 'price']).optional(),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'title', 'viewsCount', 'visits', 'price']).optional(),
   order: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
   page: z.union([z.number(), z.string()]).optional(),
   limit: z.union([z.number(), z.string()]).optional(),

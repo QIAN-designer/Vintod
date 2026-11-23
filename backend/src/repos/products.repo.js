@@ -106,6 +106,7 @@ const mapProduct = product => {
         _id: id,
         id,
         ...rest,
+        visits: product.visits ?? 0,
         // Compatibilidad con frontend catálogo
         price: primaryVariant ? primaryVariant.price : 0,
         size: primaryVariant ? primaryVariant.size : "",
@@ -137,7 +138,9 @@ const productInclude = {
     },
     variants: {
         include: {
-            images: true,
+            images: {
+                orderBy: { sortOrder: 'asc' },
+            },
         },
     },
 };
@@ -357,57 +360,53 @@ const create = async productData => {
         sellerId: rawSellerId,
     });
 
-    // Creación transaccional con integridad referencial atómica
-    const createdProductId = await prisma.$transaction(async tx => {
-        // 1. Crear producto base
-        const product = await tx.product.create({
-            data: {
-                title,
-                slug,
-                description,
-                status,
-                isActive,
-                sellerId,
-                categoryId,
-                brandId,
-            },
-        });
-
-        // 2. Crear variante asociada al producto
-        const sku = `SKU-${slug.toUpperCase()}-1`;
-        const variant = await tx.productVariant.create({
-            data: {
-                sku,
-                size: size || "M",
-                color: color || null,
-                condition: condition || "Muy bueno",
-                price: typeof price === "number" ? price : parseFloat(price) || 0,
-                stock: typeof stock === "number" ? stock : parseInt(stock, 10) || 1,
-                productId: product.id,
-            },
-        });
-
-        // 3. Crear imágenes asociadas a la variante
-        const imgUrls = images.length > 0 ? images : image ? [image] : [];
-        if (imgUrls.length > 0) {
-            for (let i = 0; i < imgUrls.length; i++) {
-                await tx.productImage.create({
-                    data: {
-                        url: imgUrls[i],
-                        isCover: i === 0,
-                        sortOrder: i,
-                        variantId: variant.id,
-                        entityType: "PRODUCT_VARIANT",
-                        entityId: variant.id,
-                    },
-                });
-            }
-        }
-
-        return product.id;
+    // Creación secuencial compatible con MongoDB (evita deadlock/write conflict de transacciones interactivas)
+    // 1. Crear producto base
+    const product = await prisma.product.create({
+        data: {
+            title,
+            slug,
+            description,
+            status,
+            isActive,
+            sellerId,
+            categoryId,
+            brandId,
+        },
     });
 
-    return findById(createdProductId);
+    // 2. Crear variante asociada al producto
+    const sku = `SKU-${slug.toUpperCase()}-1`;
+    const variant = await prisma.productVariant.create({
+        data: {
+            sku,
+            size: size || "M",
+            color: color || null,
+            condition: condition || "Muy bueno",
+            price: typeof price === "number" ? price : parseFloat(price) || 0,
+            stock: typeof stock === "number" ? stock : parseInt(stock, 10) || 1,
+            productId: product.id,
+        },
+    });
+
+    // 3. Crear imágenes asociadas a la variante
+    const imgUrls = images.length > 0 ? images : image ? [image] : [];
+    if (imgUrls.length > 0) {
+        for (let i = 0; i < imgUrls.length; i++) {
+            await prisma.productImage.create({
+                data: {
+                    url: imgUrls[i],
+                    isCover: i === 0,
+                    sortOrder: i,
+                    variantId: variant.id,
+                    entityType: "PRODUCT_VARIANT",
+                    entityId: variant.id,
+                },
+            });
+        }
+    }
+
+    return findById(product.id);
 };
 
 const update = async (id, productData) => {
@@ -522,6 +521,16 @@ const restore = async id => {
     return findById(id);
 };
 
+const incrementVisits = async id => {
+    return await handleNotFound(
+        prisma.product.update({
+            where: { id },
+            data: { visits: { increment: 1 } },
+            include: productInclude,
+        }),
+    );
+};
+
 module.exports = {
     findAll,
     findDeleted,
@@ -532,4 +541,5 @@ module.exports = {
     patch,
     softDelete,
     restore,
+    incrementVisits,
 };

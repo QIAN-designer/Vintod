@@ -15,6 +15,7 @@ export class ShopService {
 
   // Signals reactivas en ShopService
   private productsSignal = signal<Product[]>([]);
+  private mostVisitedProductsSignal = signal<Product[]>([]);
   private categoriesSignal = signal<Category[]>([]);
   private brandsSignal = signal<Brand[]>([]);
   private hostsSignal = signal<any[]>([]);
@@ -30,6 +31,7 @@ export class ShopService {
 
   // Exposición de Signals de solo lectura y computadas
   readonly products = this.productsSignal.asReadonly();
+  readonly mostVisitedProducts = this.mostVisitedProductsSignal.asReadonly();
   readonly categories = this.categoriesSignal.asReadonly();
   readonly brands = this.brandsSignal.asReadonly();
   readonly hosts = this.hostsSignal.asReadonly();
@@ -103,6 +105,25 @@ export class ShopService {
         this.loadingSignal.set(false);
       }
       throw err;
+    }
+  }
+
+  /**
+   * Obtiene las 10 prendas más visitadas ordenadas por el campo visits de forma descendente
+   */
+  async loadMostVisitedProducts(): Promise<void> {
+    try {
+      const url = this.buildUrl(this.productsUrl, {
+        sortBy: 'visits',
+        order: 'desc',
+        limit: 10,
+      });
+      const res = await firstValueFrom(this.http.get<ApiResponse<Product[]>>(url));
+      if (res?.success && Array.isArray(res.data)) {
+        this.mostVisitedProductsSignal.set(res.data);
+      }
+    } catch {
+      // Silencioso en caso de fallo secundario
     }
   }
 

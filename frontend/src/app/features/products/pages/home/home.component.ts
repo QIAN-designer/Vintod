@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ProductsStore } from '../../../../core/store/products.store';
+import { ShopService } from '../../../../core/services/shop.service';
 import { AuthStore } from '../../../../core/auth/auth.store';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { CarouselComponent } from '../../../../shared/components/carousel/carousel.component';
@@ -132,6 +133,25 @@ import Swal from 'sweetalert2';
       <main class="w-full pt-24 bg-surface flex-1">
         <div class="max-w-[1280px] mx-auto px-margin-desktop py-space-lg flex flex-col gap-space-xl">
 
+          <!-- 0. Carousel de Prendas Más Visitadas -->
+          @if (shopService.mostVisitedProducts().length > 0) {
+            <section class="w-full">
+              <app-carousel
+                badge="Tendencias"
+                badgeIcon="local_fire_department"
+                title="Prendas más visitadas"
+                subtitle="Las 10 prendas más visitadas por la comunidad"
+                [scrollStep]="360"
+              >
+                @for (product of shopService.mostVisitedProducts(); track product._id || product.id) {
+                  <div class="min-w-[240px] shrink-0">
+                    <app-product-card [product]="product"></app-product-card>
+                  </div>
+                }
+              </app-carousel>
+            </section>
+          }
+
           <!-- 1. Carousel de Categorías (Categories Card) -->
           <section class="w-full">
             <app-carousel
@@ -168,25 +188,7 @@ import Swal from 'sweetalert2';
             </app-carousel>
           </section>
 
-          <!-- 3. Carousel de Vendedoras / Anfitrionas (Hosts Card) -->
-          <section class="w-full bg-surface-container-low rounded-2xl p-space-lg">
-            <app-carousel
-              badge="Vendedoras Pro & Hosts"
-              badgeIcon="verified"
-              title="Anfitrionas y armarios destacados"
-              subtitle="Perfiles verificados con alta valoración y envíos en menos de 24 horas"
-              [scrollStep]="420"
-            >
-              @for (host of featuredHosts; track host.id) {
-                <app-host-card
-                  [host]="host"
-                  (selectHost)="navigateToShopWithFilter({ host: $event.name.split(' ')[0] })"
-                ></app-host-card>
-              }
-            </app-carousel>
-          </section>
-
-          <!-- 4. Avance de Novedades Recientes con enlace a Shop -->
+          <!-- 3. Avance de Novedades Recientes con enlace a Shop -->
           <section class="w-full">
             <div class="flex items-end justify-between mb-4">
               <div>
@@ -224,6 +226,7 @@ import Swal from 'sweetalert2';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   store = inject(ProductsStore);
+  shopService = inject(ShopService);
   authStore = inject(AuthStore);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -398,6 +401,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         return;
       }
       this.store.fetchShopProducts();
+      this.shopService.loadMostVisitedProducts();
     });
 
     this.ecoIntervalId = setInterval(() => {

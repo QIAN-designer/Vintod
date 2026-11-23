@@ -72,6 +72,7 @@ export interface Product {
   slug?: string;
   status?: string;
   viewsCount?: number;
+  visits?: number;
   isActive?: boolean;
   deletedAt?: string | Date | null;
   createdAt?: string | Date;

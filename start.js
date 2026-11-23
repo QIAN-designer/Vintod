@@ -35,13 +35,15 @@ function runProcess(name, color, cwd, args) {
   return proc;
 }
 
-console.log('\x1b[33mIniciando Backend y Frontend en la misma terminal...\x1b[0m\n');
+console.log('\x1b[33mIniciando Backend, BackendIA y Frontend en la misma terminal...\x1b[0m\n');
 
 const backend = runProcess('BACKEND', '\x1b[36m', path.join(__dirname, 'backend'), ['run', 'dev']);
+const backendIA = runProcess('BACKEND_IA', '\x1b[35m', path.join(__dirname, 'backendIA'), ['run', 'dev']);
 const frontend = runProcess('FRONTEND', '\x1b[32m', path.join(__dirname, 'frontend'), ['start']);
 
 process.on('SIGINT', () => {
   backend.kill();
+  backendIA.kill();
   frontend.kill();
   process.exit();
 });

@@ -10,130 +10,187 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <div class="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="text-center">
-          <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-teal-100 text-teal-700 text-xl font-bold mb-3">
-            🔐
-          </span>
-          <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Iniciar sesión en Vintod
-          </h2>
-          <p class="mt-2 text-sm text-slate-600">
-            ¿No tienes cuenta?
-            <a routerLink="/register" class="font-semibold text-teal-600 hover:text-teal-500 hover:underline">
-              Regístrate gratis
+    <div class="relative min-h-[calc(100vh-5rem)] w-full flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+      <!-- Tarjeta Principal (Glassmorphism adaptado a Modo Claro y Modo Oscuro) -->
+      <div class="relative z-10 w-full max-w-md">
+        <div class="bg-white/85 dark:bg-[#111e21]/90 backdrop-blur-md border border-white/60 dark:border-white/10 shadow-[0_20px_50px_rgba(0,119,130,0.12),0_4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.5)] rounded-3xl p-8 sm:p-10 transition-colors duration-300">
+          
+          <!-- Cabecera de marca: Isotipo circular #007782 con "V" blanca + texto "Vintod" -->
+          <div class="flex flex-col items-center text-center mb-8">
+            <a routerLink="/" class="inline-flex items-center gap-3 group mb-4">
+              <div class="w-12 h-12 rounded-full bg-[#007782] dark:bg-teal-500 flex items-center justify-center shadow-md shadow-[#007782]/25 group-hover:scale-105 transition-transform">
+                <span class="text-white dark:text-[#0b1416] font-black text-2xl tracking-tighter">V</span>
+              </div>
+              <span class="text-2xl font-extrabold text-slate-900 dark:text-stone-100 tracking-tight">Vintod</span>
             </a>
-          </p>
-        </div>
-      </div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-stone-100 tracking-tight">
+              Bienvenido de nuevo
+            </h1>
+            <p class="mt-2 text-sm text-slate-600 dark:text-stone-400">
+              Inicia sesión para descubrir tesoros de segunda mano
+            </p>
+          </div>
 
-      <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="bg-white py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border border-slate-100">
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Formulario de Login -->
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
             <!-- Email -->
             <div>
-              <label for="email" class="block text-sm font-medium text-slate-700">
+              <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-stone-300 mb-1.5">
                 Correo electrónico
               </label>
-              <div class="mt-1 relative rounded-md shadow-xs">
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-stone-400">
+                  <span class="material-symbols-outlined text-[20px]">mail</span>
+                </div>
                 <input
                   id="email"
                   type="email"
                   formControlName="email"
                   autocomplete="email"
                   placeholder="ejemplo@vintod.com"
-                  [class.border-rose-500]="isFieldInvalid('email')"
-                  class="block w-full px-3.5 py-2.5 sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                  [class.border-rose-400]="isFieldInvalid('email')"
+                  [class.focus:ring-rose-400]="isFieldInvalid('email')"
+                  class="w-full pl-11 pr-4 py-3 bg-white/90 dark:bg-[#0d171a]/90 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-stone-100 placeholder:text-slate-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#007782] dark:focus:ring-teal-400 focus:border-transparent transition-all shadow-xs"
                 />
               </div>
               @if (isFieldInvalid('email')) {
-                <p class="mt-1.5 text-xs text-rose-600 font-medium">
+                <p class="mt-1.5 text-xs text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">error</span>
                   @if (loginForm.get('email')?.hasError('required')) {
                     El email es obligatorio.
                   } @else if (loginForm.get('email')?.hasError('email')) {
-                    Ingresa un correo electrónico con formato válido.
+                    Ingresa un correo electrónico válido.
                   }
                 </p>
               }
             </div>
 
-            <!-- Contraseña -->
+            <!-- Password -->
             <div>
-              <label for="password" class="block text-sm font-medium text-slate-700">
+              <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-stone-300 mb-1.5">
                 Contraseña
               </label>
-              <div class="mt-1 relative rounded-md shadow-xs">
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-stone-400">
+                  <span class="material-symbols-outlined text-[20px]">lock</span>
+                </div>
                 <input
                   id="password"
                   [type]="showPassword() ? 'text' : 'password'"
                   formControlName="password"
                   autocomplete="current-password"
                   placeholder="••••••••"
-                  [class.border-rose-500]="isFieldInvalid('password')"
-                  class="block w-full px-3.5 py-2.5 sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                  [class.border-rose-400]="isFieldInvalid('password')"
+                  [class.focus:ring-rose-400]="isFieldInvalid('password')"
+                  class="w-full pl-11 pr-11 py-3 bg-white/90 dark:bg-[#0d171a]/90 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-stone-100 placeholder:text-slate-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#007782] dark:focus:ring-teal-400 focus:border-transparent transition-all shadow-xs"
                 />
                 <button
                   type="button"
-                  (click)="showPassword.set(!showPassword())"
-                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-slate-400 hover:text-slate-600"
+                  (click)="togglePasswordVisibility()"
+                  class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-stone-200 transition-colors"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Ver contraseña'"
                 >
-                  {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+                  <span class="material-symbols-outlined text-[20px]">
+                    {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                  </span>
                 </button>
               </div>
               @if (isFieldInvalid('password')) {
-                <p class="mt-1.5 text-xs text-rose-600 font-medium">
+                <p class="mt-1.5 text-xs text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">error</span>
                   La contraseña es obligatoria.
                 </p>
               }
             </div>
 
-            <!-- Accesos rápidos de prueba (Seed credentials) -->
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1.5 text-slate-600">
-              <span class="font-bold text-slate-700 block">Cuentas de prueba del sistema:</span>
-              <div class="flex items-center justify-between">
-                <span>👤 Vendedor (USER):</span>
-                <button
-                  type="button"
-                  (click)="fillCredentials('carmen@vintod.com', 'password123')"
-                  class="text-teal-600 font-semibold hover:underline"
-                >
-                  carmen&#64;vintod.com
-                </button>
-              </div>
-              <div class="flex items-center justify-between">
-                <span>🛡️ Administrador (ADMIN):</span>
-                <button
-                  type="button"
-                  (click)="fillCredentials('admin@vintod.com', 'admin123')"
-                  class="text-teal-600 font-semibold hover:underline"
-                >
-                  admin&#64;vintod.com
-                </button>
-              </div>
+            <!-- Opciones: Recordarme & Olvidé contraseña -->
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  formControlName="rememberMe"
+                  class="w-4 h-4 rounded border-slate-300 dark:border-stone-700 text-[#007782] dark:text-teal-500 focus:ring-[#007782] dark:focus:ring-teal-400 bg-white dark:bg-[#0d171a]"
+                />
+                <span class="text-xs text-slate-600 dark:text-stone-300 font-medium">Recordarme</span>
+              </label>
+              <a
+                href="javascript:void(0)"
+                (click)="onForgotPassword()"
+                class="text-xs font-semibold text-[#007782] dark:text-[#2dd4bf] hover:text-[#005f69] dark:hover:text-teal-300 hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </a>
             </div>
 
-            <!-- Botón Submit -->
-            <div>
-              <button
-                type="submit"
-                [disabled]="isLoading() || loginForm.invalid"
-                class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                @if (isLoading()) {
-                  <span class="inline-flex items-center gap-2">
-                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Validando credenciales...
-                  </span>
-                } @else {
-                  <span>Iniciar sesión</span>
-                }
-              </button>
-            </div>
+            <!-- Botón principal de acceso (Pill button ancho completo con loader) -->
+            <button
+              type="submit"
+              [disabled]="isLoading()"
+              class="w-full rounded-full bg-[#007782] dark:bg-teal-500 hover:bg-[#005f69] dark:hover:bg-teal-400 active:scale-[0.99] text-white dark:text-[#0b1416] font-semibold py-3 px-6 shadow-md shadow-[#007782]/25 dark:shadow-teal-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+            >
+              @if (isLoading()) {
+                <div class="w-5 h-5 border-2 border-white/30 border-t-white dark:border-black/30 dark:border-t-black rounded-full animate-spin"></div>
+                <span>Iniciando sesión...</span>
+              } @else {
+                <span>Iniciar sesión</span>
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+              }
+            </button>
           </form>
+
+          <!-- Separador "O continúa con" -->
+          <div class="relative my-7">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-slate-200 dark:border-white/10"></div>
+            </div>
+            <div class="relative flex justify-center text-xs uppercase">
+              <span class="bg-white/90 dark:bg-[#111e21] px-3 text-slate-500 dark:text-stone-400 font-semibold tracking-wider">
+                O continúa con
+              </span>
+            </div>
+          </div>
+
+          <!-- Botones sociales redondeados (Stubs UI para Google y Apple) -->
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              (click)="onSocialLogin('Google')"
+              class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#0d171a]/80 hover:bg-white dark:hover:bg-[#162529] text-xs font-semibold text-slate-700 dark:text-stone-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="onSocialLogin('Apple')"
+              class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#0d171a]/80 hover:bg-white dark:hover:bg-[#162529] text-xs font-semibold text-slate-700 dark:text-stone-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+            >
+              <svg class="w-4 h-4 fill-current text-slate-900 dark:text-stone-100" viewBox="0 0 24 24">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.87c.66-.82 1.11-1.96.99-3.1-.96.04-2.12.64-2.8 1.44-.6.69-1.12 1.83-1 2.94 1.07.08 2.15-.46 2.81-1.28z"/>
+              </svg>
+              <span>Apple</span>
+            </button>
+          </div>
+
+          <!-- Pie de tarjeta: enlace a registro -->
+          <div class="mt-8 text-center pt-4 border-t border-slate-200/60 dark:border-white/10">
+            <p class="text-sm text-slate-600 dark:text-stone-400">
+              ¿No tienes cuenta?
+              <a
+                routerLink="/register"
+                class="font-bold text-[#007782] dark:text-[#2dd4bf] hover:text-[#005f69] dark:hover:text-teal-300 hover:underline transition-colors ml-1"
+              >
+                Regístrate
+              </a>
+            </p>
+          </div>
+
         </div>
       </div>
     </div>
@@ -146,24 +203,22 @@ export class LoginComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  isLoading = signal(false);
-  showPassword = signal(false);
+  showPassword = signal<boolean>(false);
+  isLoading = signal<boolean>(false);
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]]
+    password: ['', [Validators.required]],
+    rememberMe: [true]
   });
 
-  isFieldInvalid(field: string): boolean {
-    const control = this.loginForm.get(field);
-    return !!(control && control.invalid && (control.dirty || control.touched));
+  togglePasswordVisibility(): void {
+    this.showPassword.update(v => !v);
   }
 
-  fillCredentials(email: string, pass: string): void {
-    this.loginForm.patchValue({
-      email,
-      password: pass
-    });
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.loginForm.get(fieldName);
+    return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
   onSubmit(): void {
@@ -173,45 +228,73 @@ export class LoginComponent {
     }
 
     this.isLoading.set(true);
-    const credentials = this.loginForm.value;
+    const { email, password } = this.loginForm.value;
 
-    this.authService.login(credentials).subscribe({
-      next: (res) => {
+    this.authService.login({ email, password }).subscribe({
+      next: (response) => {
         this.isLoading.set(false);
-        if (res.success && res.data) {
-          const user = res.data.user;
-          const username = user.profile?.username || user.email;
+        if (response.success) {
+          const userRole = this.authStore.userRole();
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || (userRole === 'ADMIN' ? '/admin' : '/');
 
           Swal.fire({
             icon: 'success',
-            title: `¡Bienvenido de nuevo, ${username}!`,
-            text: 'Sesión iniciada correctamente en Vintod.',
-            timer: 1800,
+            title: `¡Hola de nuevo, ${this.authStore.username()}!`,
+            text: 'Has iniciado sesión correctamente.',
+            timer: 1600,
             showConfirmButton: false
-          });
-
-          // Redirección según rol o returnUrl
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'];
-          if (returnUrl) {
+          }).then(() => {
             this.router.navigateByUrl(returnUrl);
-          } else if (this.authStore.isAdmin()) {
-            this.router.navigate(['/admin']);
-          } else {
-            this.router.navigate(['/products']);
-          }
+          });
         }
       },
       error: (err) => {
         this.isLoading.set(false);
-        const errorMsg = err.error?.error?.message || err.error?.message || 'Credenciales inválidas. Comprueba tu correo y contraseña.';
+        const errorMsg = err.error?.error?.message || err.error?.message || 'Credenciales incorrectas. Verifica tu email y contraseña.';
         Swal.fire({
           icon: 'error',
-          title: 'Error de autenticación',
+          title: 'Error de inicio de sesión',
           text: errorMsg,
           confirmButtonColor: '#007782'
         });
       }
     });
   }
-}
 
+  onForgotPassword(): void {
+    Swal.fire({
+      title: 'Recuperar contraseña',
+      text: 'Introduce tu correo y te enviaremos las instrucciones de restablecimiento:',
+      input: 'email',
+      inputPlaceholder: 'ejemplo@vintod.com',
+      showCancelButton: true,
+      confirmButtonText: 'Enviar enlace',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#007782',
+      inputValidator: (value) => {
+        if (!value || !value.includes('@')) {
+          return 'Por favor, ingresa un correo electrónico válido.';
+        }
+        return null;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Enlace enviado',
+          text: `Si la cuenta ${result.value} existe, recibirás un correo en breve.`,
+          confirmButtonColor: '#007782'
+        });
+      }
+    });
+  }
+
+  onSocialLogin(provider: string): void {
+    Swal.fire({
+      icon: 'info',
+      title: `Acceso con ${provider}`,
+      text: `El inicio de sesión rápido con ${provider} estará disponible próximamente.`,
+      confirmButtonColor: '#007782'
+    });
+  }
+}

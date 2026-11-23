@@ -1,0 +1,122 @@
+# ==============================================================================
+# Vintod - .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Dependencias (Node.js / npm)
+# ------------------------------------------------------------------------------
+node_modules/
+*/node_modules/
+*/*/node_modules/
+.pnp
+.pnp.js
+
+# ------------------------------------------------------------------------------
+# 2. Entornos y Secretos (.env / API Keys / Certificados)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+*.env.*
+**/.env
+**/.env.*
+!.env.example
+!.env*.example
+**/.env.example
+*.local
+*.pem
+*.key
+*.cert
+*.crt
+
+# ------------------------------------------------------------------------------
+# 3. Compilaciones y Distribución (Build / Dist / Outputs)
+# ------------------------------------------------------------------------------
+dist/
+**/dist/
+build/
+**/build/
+out/
+bin/
+obj/
+
+# Angular
+.angular/
+**/.angular/
+.angular/cache
+**/.angular/cache
+
+# ------------------------------------------------------------------------------
+# 4. Logs y Debugging
+# ------------------------------------------------------------------------------
+logs/
+**/logs/
+*.log
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------------------------------
+# 5. Herramientas y Bases de Datos Locales
+# ------------------------------------------------------------------------------
+# Prisma & SQLite
+dev.db
+dev.db-journal
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------------------------------------
+# 6. Editores, IDEs y Sistema Operativo
+# ------------------------------------------------------------------------------
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains / WebStorm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Obsidian
+.obsidian/
+
+# Sistema Operativo (Windows / macOS / Linux)
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# ------------------------------------------------------------------------------
+# 7. Testing y Cobertura de Código
+# ------------------------------------------------------------------------------
+coverage/
+*/coverage/
+.nyc_output/
+*.lcov
+.clinic/
+
+# ------------------------------------------------------------------------------
+# 8. Archivos Temporales / Caché
+# ------------------------------------------------------------------------------
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+*/.cache/

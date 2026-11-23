@@ -1,63 +1,105 @@
-<div class="group bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer" [routerLink]="['/products', product.slug || product._id]">
-  <!-- Seller Header -->
-  <div class="p-space-sm flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <div class="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center text-[11px] font-bold text-on-primary-fixed uppercase overflow-hidden shrink-0">
-        {{ (product.sellerName || 'U').charAt(0) }}
-      </div>
-      <span class="font-label-md text-label-md text-on-surface font-medium truncate max-w-[120px]">
-        {{ '@' + (product.sellerName || 'vendedor') }}
-      </span>
-    </div>
-    <div class="flex items-center gap-0.5 text-tertiary font-label-md text-label-md">
-      <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">star</span>
-      <span>4.9</span>
-    </div>
-  </div>
-
-  <!-- Image & Status Badge -->
-  <div class="relative aspect-[3/4] w-full bg-surface-container overflow-hidden">
-    <img
-      [src]="product.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&auto=format&fit=crop&q=80'"
-      [alt]="product.title"
-      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-    />
-    <span class="absolute bottom-2.5 left-2.5 bg-secondary-fixed/90 text-on-secondary-fixed font-label-md text-label-md px-2.5 py-1 rounded-full shadow-sm backdrop-blur-sm">
-      {{ product.condition || 'Muy bueno' }}
-    </span>
-    <button
-      type="button"
-      (click)="toggleFavorite($event)"
-      class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-surface/85 backdrop-blur-md flex items-center justify-center shadow-sm transition-colors hover:text-error"
-      [class.text-error]="isFavorite()"
-      [class.text-outline]="!isFavorite()"
+<div
+    class="group relative h-full w-full bg-white/90 dark:bg-stone-900/90 backdrop-blur-md rounded-2xl sm:rounded-3xl overflow-hidden border border-white/70 dark:border-stone-800 shadow-[0_4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_32px_rgba(0,119,130,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer"
+    [routerLink]="['/products', product.slug || product._id]"
+>
+    <!-- Foto de Producto con Ratio Editorial 3:4 -->
+    <div
+        class="relative aspect-[3/4] w-full bg-slate-100 dark:bg-stone-800 overflow-hidden flex items-center justify-center"
     >
-      <span class="material-symbols-outlined text-[18px]" [style.font-variation-settings]="fontVariationSettings()">favorite</span>
-    </button>
-  </div>
+        <img
+            [src]="imageUrl()"
+            [alt]="product.title"
+            (error)="onImageError()"
+            class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+        />
 
-  <!-- Card Body -->
-  <div class="p-space-md flex flex-col gap-1">
-    <div class="flex items-baseline justify-between">
-      <span class="font-price-display text-price-display text-on-surface font-extrabold">
-        {{ product.price | currency:'EUR':'symbol':'1.2-2' }}
-      </span>
-      <span class="font-label-md text-label-md text-outline bg-surface-container px-2 py-0.5 rounded">
-        {{ product.size }}
-      </span>
+        <!-- Gradiente sutil inferior para contraste -->
+        <div
+            class="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-60 pointer-events-none"
+        ></div>
+
+        <!-- Badge Estado / Condición Glassmorphic -->
+        <span
+            class="absolute top-3 left-3 bg-white/85 dark:bg-stone-900/85 backdrop-blur-md text-slate-800 dark:text-stone-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-2xs border border-white/60 dark:border-stone-700"
+        >
+            {{ product.condition || "Muy bueno" }}
+        </span>
+
+        <!-- Badge de Talla Flotante -->
+        @if (product.size) {
+            <span
+                class="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-2xs"
+            >
+                Talla {{ product.size }}
+            </span>
+        }
+
+        <!-- Botón de Favorito Circular Glassmorphism -->
+        <button
+            type="button"
+            (click)="toggleFavorite($event)"
+            class="absolute top-3 right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/85 dark:bg-stone-900/85 backdrop-blur-md border border-white/80 dark:border-stone-700 flex items-center justify-center shadow-xs hover:scale-110 active:scale-90 transition-all cursor-pointer group/fav"
+            [attr.aria-label]="isFavorite() ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+        >
+            <span
+                class="material-symbols-outlined text-[18px] sm:text-[19px] transition-colors"
+                [class.text-rose-500]="isFavorite()"
+                [class.text-slate-600]="!isFavorite()"
+                [style.font-variation-settings]="fontVariationSettings()"
+            >
+                favorite
+            </span>
+        </button>
     </div>
-    <div class="flex items-center gap-1 text-secondary font-label-md text-label-md">
-      <span class="material-symbols-outlined text-[15px]">verified_user</span>
-      <span>Incluye protección al comprador</span>
+
+    <!-- Cuerpo de la Tarjeta -->
+    <div
+        class="p-3.5 sm:p-4 flex flex-col gap-1.5 bg-gradient-to-b from-white/60 to-white/95 dark:from-stone-900/60 dark:to-stone-900/95"
+    >
+        <!-- Fila Marca y Favoritos -->
+        <div class="flex items-center justify-between text-xs">
+            <span class="font-bold uppercase tracking-wider text-[#007782] dark:text-[#4db8c4] truncate max-w-[140px]">
+                {{ product.brand || "Vintage Archive" }}
+            </span>
+            <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 dark:text-stone-400">
+                <span class="material-symbols-outlined text-[13px]">favorite</span>
+                <span>{{ favCount() }}</span>
+            </div>
+        </div>
+
+        <!-- Título de la prenda -->
+        <h3
+            class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-stone-200 line-clamp-1 group-hover:text-[#007782] dark:group-hover:text-[#4db8c4] transition-colors"
+        >
+            {{ product.title }}
+        </h3>
+
+        <!-- Precio y Vendedor -->
+        <div class="pt-1 border-t border-slate-100 dark:border-stone-800 flex items-center justify-between">
+            <div>
+                <span class="text-base sm:text-lg font-black text-slate-900 dark:text-stone-100 tracking-tight">
+                    {{ product.price | currency: "EUR" : "symbol" : "1.0-2" }}
+                </span>
+            </div>
+
+            <div
+                class="flex items-center gap-1.5 text-slate-500 dark:text-stone-400 text-[11px] font-medium truncate max-w-[110px]"
+            >
+                <div
+                    class="w-4 h-4 rounded-full bg-[#007782]/15 dark:bg-[#007782]/30 text-[#007782] dark:text-[#4db8c4] flex items-center justify-center text-[9px] font-bold uppercase shrink-0"
+                >
+                    {{ (product.sellerName || "V").charAt(0) }}
+                </div>
+                <span class="truncate">{{ "@" + (product.sellerName || "vendedor") }}</span>
+            </div>
+        </div>
+
+        <!-- Protección al comprador sutil -->
+        <div class="flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold pt-0.5">
+            <span class="material-symbols-outlined text-[12px] text-emerald-600 dark:text-emerald-400"
+                >verified_user</span
+            >
+            <span>Protección al comprador</span>
+        </div>
     </div>
-    <div class="flex items-center justify-between pt-1">
-      <span class="font-label-lg text-label-lg text-on-surface-variant font-medium truncate max-w-[150px]">
-        {{ product.brand || 'Vintage' }}
-      </span>
-      <div class="flex items-center gap-1 text-outline font-label-md text-label-md">
-        <span class="material-symbols-outlined text-[14px]">favorite_border</span>
-        <span>{{ favCount() }}</span>
-      </div>
-    </div>
-  </div>
 </div>

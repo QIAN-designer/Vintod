@@ -63,7 +63,7 @@ const getAllProducts = async (query = {}) => {
         if (!Number.isNaN(parsedMax)) filters.maxPrice = parsedMax;
     }
 
-    const allowedSortFields = ["createdAt", "updatedAt", "title", "viewsCount", "price"];
+    const allowedSortFields = ["createdAt", "updatedAt", "title", "viewsCount", "visits", "price"];
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
     const sortOrder = String(order).toLowerCase() === "asc" ? "asc" : "desc";
 
@@ -116,7 +116,8 @@ const getProductById = async id => {
     if (!product) {
         throw new AppError("Producto no encontrado", 404);
     }
-    return product;
+    const updated = await productsRepo.incrementVisits(product.id);
+    return updated || product;
 };
 
 const createProduct = async productData => {

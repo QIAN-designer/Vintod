@@ -131,6 +131,7 @@ model Product {
   description String
   status      String           @default("available") // "available" | "reserved" | "sold" | "hidden"
   viewsCount  Int              @default(0)
+  visits      Int              @default(0)
   isActive    Boolean          @default(true)
   deletedAt   DateTime?
   createdAt   DateTime         @default(now())
@@ -148,6 +149,7 @@ model Product {
   variants    ProductVariant[]
 
   @@index([status, isActive, createdAt(sort: Desc)])
+  @@index([isActive, visits(sort: Desc)])
   @@index([deletedAt, isActive])
   @@index([categoryId, isActive])
   @@index([brandId, isActive])

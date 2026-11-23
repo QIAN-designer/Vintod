@@ -10,11 +10,11 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./features/products/pages/home/home.component').then(m => m.HomeComponent)
+        loadComponent: () => import('./features/home/pages/home.component').then(m => m.HomeComponent)
       },
       {
         path: 'home',
-        loadComponent: () => import('./features/products/pages/home/home.component').then(m => m.HomeComponent)
+        loadComponent: () => import('./features/home/pages/home.component').then(m => m.HomeComponent)
       },
       // Rutas públicas de catálogo (Shop / List)
       {
@@ -29,7 +29,7 @@ export const routes: Routes = [
       {
         path: 'products/new',
         canActivate: [authGuard],
-        loadComponent: () => import('./features/products/pages/product-create/product-create.component').then(m => m.ProductCreatePageComponent)
+        loadComponent: () => import('./features/products/pages/sell-product/sell-product.component').then(m => m.SellProductComponent)
       },
       // Detalle por slug o id
       {

@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { CommonModule } from "@angular/common";
 import { Subscription } from "rxjs";
 import { ProductsStore } from "../../../../core/store/products.store";
 import { AuthStore } from "../../../../core/auth/auth.store";
@@ -15,12 +16,15 @@ import { CarouselComponent } from "../../../../shared/components/carousel/carous
 import { CategoryCardComponent, CategoryCardItem } from "../../components/category-card/category-card.component";
 import { LocationCardComponent, LocationItem } from "../../components/location-card/location-card.component";
 import { HostCardComponent, HostItem } from "../../components/host-card/host-card.component";
+import { ThemeToggleComponent } from "../../../../shared/components/theme-toggle/theme-toggle.component";
+import { CatalogChatbotComponent } from "../../components/catalog-chatbot/catalog-chatbot.component";
 import Swal from "sweetalert2";
 
 @Component({
   selector: "app-product-list",
   standalone: true,
   imports: [
+    CommonModule,
     RouterLink,
     ProductCardComponent,
     ProductSkeletonComponent,
@@ -32,7 +36,9 @@ import Swal from "sweetalert2";
     CarouselComponent,
     CategoryCardComponent,
     LocationCardComponent,
-    HostCardComponent
+    HostCardComponent,
+    ThemeToggleComponent,
+    CatalogChatbotComponent
   ],
   templateUrl: "./product-list.component.html"
 })

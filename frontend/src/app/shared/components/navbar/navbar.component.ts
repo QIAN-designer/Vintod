@@ -1,225 +1,238 @@
-import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { AuthStore } from '../../../core/auth/auth.store';
-import { AuthService } from '../../../core/auth/auth.service';
-import Swal from 'sweetalert2';
+import { Component, inject, signal } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Router, RouterLink } from "@angular/router";
+import Swal from "sweetalert2";
+import { AuthService } from "../../../core/auth/auth.service";
+import { AuthStore } from "../../../core/auth/auth.store";
+import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component";
 
 @Component({
-  selector: 'app-navbar',
-  standalone: true,
-  imports: [RouterLink],
-  template: `
-    <nav class="bg-white shadow-xs border-b border-slate-200 sticky top-0 z-40 backdrop-blur-md bg-white/95">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-          <!-- Logo -->
-          <div class="flex-shrink-0 flex items-center gap-2">
-            <a routerLink="/" class="text-3xl font-extrabold text-teal-700 tracking-tight hover:opacity-90 transition-opacity">
-              Vintod
-            </a>
-            <span class="hidden md:inline-block text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-              Marketplace
-            </span>
-          </div>
-
-          <!-- Buscador central -->
-          <div class="flex-1 flex justify-center px-4 max-w-lg">
-            <div class="w-full relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="search"
-                placeholder="Buscar prendas de segunda mano..."
-                class="block w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-full bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all"
-              />
-            </div>
-          </div>
-
-          <!-- Acciones de Usuario / Auth -->
-          <div class="flex items-center space-x-3">
-            <!-- Vender Prenda -->
-            <a
-              routerLink="/products/new"
-              class="inline-flex items-center px-3.5 py-2 text-sm font-semibold rounded-lg text-white bg-teal-600 hover:bg-teal-700 shadow-2xs transition-all"
+    selector: "app-navbar",
+    standalone: true,
+    imports: [RouterLink, FormsModule, ThemeToggleComponent],
+    template: `
+        <header class="fixed top-4 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pointer-events-none">
+            <div
+                class="pointer-events-auto bg-white/85 dark:bg-stone-900/85 backdrop-blur-md border border-white/60 dark:border-stone-800 shadow-[0_8px_32px_rgba(0,119,130,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 sm:gap-4 transition-all"
             >
-              <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Vender</span>
-            </a>
-
-            <!-- Acceso a Panel Admin si es ADMIN -->
-            @if (authStore.isAdmin()) {
-              <a
-                routerLink="/admin/products"
-                class="inline-flex items-center px-3 py-2 border border-teal-200 text-xs font-semibold rounded-lg text-teal-700 bg-teal-50 hover:bg-teal-100 transition-colors"
-                title="Acceder al Panel de Administración"
-              >
-                <svg class="w-4 h-4 mr-1.5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>Panel Admin</span>
-              </a>
-            }
-
-            <!-- Menú de Usuario Autenticado / Anónimo -->
-            <div class="relative">
-              @if (authStore.isAuthenticated()) {
-                <!-- Botón de perfil con menú desplegable -->
-                <button
-                  type="button"
-                  (click)="toggleUserMenu()"
-                  class="flex items-center gap-2.5 p-1 rounded-full hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-                  id="user-menu-button"
-                  aria-expanded="false"
-                  aria-haspopup="true"
-                >
-                  <img
-                    [src]="authStore.avatar()"
-                    [alt]="authStore.username()"
-                    class="w-9 h-9 rounded-full object-cover ring-2 ring-teal-500/30 shadow-2xs"
-                  />
-                  <div class="hidden sm:block text-left text-xs pr-1">
-                    <div class="font-bold text-slate-800 leading-tight">{{ authStore.username() }}</div>
-                    <div class="text-[10px] text-teal-600 font-semibold uppercase">{{ authStore.userRole() }}</div>
-                  </div>
-                  <svg class="w-4 h-4 text-slate-400 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                <!-- Dropdown Menú de Usuario -->
-                @if (isUserMenuOpen()) {
-                  <div
-                    class="fixed inset-0 z-40"
-                    (click)="isUserMenuOpen.set(false)"
-                  ></div>
-                  <div
-                    class="origin-top-right absolute right-0 mt-2 w-56 rounded-2xl shadow-xl py-2 bg-white ring-1 ring-slate-900/10 focus:outline-none z-50 divide-y divide-slate-100"
-                  >
-                    <!-- Cabecera del desplegable -->
-                    <div class="px-4 py-3">
-                      <p class="text-xs text-slate-500">Conectado como</p>
-                      <p class="text-sm font-bold text-slate-900 truncate">{{ authStore.username() }}</p>
-                      <p class="text-xs text-slate-400 truncate">{{ authStore.user()?.email }}</p>
-                    </div>
-
-                    <!-- Enlaces del Menú -->
-                    <div class="py-1">
-                      <a
-                        routerLink="/profile"
-                        (click)="isUserMenuOpen.set(false)"
-                        class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
-                      >
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span>Mi Perfil</span>
-                      </a>
-
-                      <a
-                        routerLink="/products/new"
-                        (click)="isUserMenuOpen.set(false)"
-                        class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
-                      >
-                        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span>Subir prenda</span>
-                      </a>
-
-                      @if (authStore.isAdmin()) {
-                        <a
-                          routerLink="/admin"
-                          (click)="isUserMenuOpen.set(false)"
-                          class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-teal-700 font-semibold hover:bg-teal-50 transition-colors"
+                <!-- Izquierda: Isotipo circular #007782 con "V" + texto "Vintod" y navegación -->
+                <div class="flex items-center gap-6 shrink-0">
+                    <a routerLink="/" class="flex items-center gap-2 group">
+                        <div
+                            class="w-9 h-9 rounded-full bg-[#007782] flex items-center justify-center shadow-sm shadow-[#007782]/30 group-hover:scale-105 transition-transform"
                         >
-                          <svg class="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span>Panel Administración</span>
-                        </a>
-                      }
-                    </div>
+                            <span class="text-white font-black text-lg leading-none">V</span>
+                        </div>
+                        <span class="text-xl font-extrabold text-slate-900 dark:text-stone-100 tracking-tight"
+                            >Vintod</span
+                        >
+                    </a>
 
-                    <!-- Cerrar Sesión -->
-                    <div class="py-1">
-                      <button
-                        type="button"
-                        (click)="handleLogout()"
-                        class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors"
-                      >
-                        <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Cerrar sesión</span>
-                      </button>
-                    </div>
-                  </div>
-                }
-              } @else {
-                <!-- Usuario Anónimo: Botones de Iniciar Sesión y Registro -->
-                <div class="flex items-center gap-2">
-                  <a
-                    routerLink="/login"
-                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-700 hover:text-teal-600 hover:bg-slate-50 rounded-lg transition-colors"
-                  >
-                    Iniciar sesión
-                  </a>
-                  <a
-                    routerLink="/register"
-                    class="inline-flex items-center px-3.5 py-2 text-sm font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg shadow-2xs transition-all"
-                  >
-                    Registrarse
-                  </a>
+                    <nav
+                        class="hidden md:flex items-center gap-5 text-sm font-semibold text-slate-600 dark:text-stone-300"
+                    >
+                        <a routerLink="/" class="hover:text-[#007782] dark:hover:text-[#4db8c4] transition-colors"
+                            >Explorar</a
+                        >
+                        <a
+                            routerLink="/products"
+                            class="hover:text-[#007782] dark:hover:text-[#4db8c4] transition-colors"
+                            >Catálogo</a
+                        >
+                        <a
+                            routerLink="/products"
+                            [queryParams]="{ category: 'vintage' }"
+                            class="hover:text-[#007782] dark:hover:text-[#4db8c4] transition-colors"
+                            >Sobre Nosotros</a
+                        >
+                    </nav>
                 </div>
-              }
+
+                <!-- Centro: Input de búsqueda rápida redondeado (Enter navega a /products?search=...) -->
+                <div class="flex-1 max-w-md mx-2 sm:mx-4">
+                    <div class="relative">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-stone-500"
+                        >
+                            <span class="material-symbols-outlined text-[19px]">search</span>
+                        </div>
+                        <input
+                            type="text"
+                            [(ngModel)]="searchTerm"
+                            (keydown.enter)="onSearch()"
+                            placeholder="Buscar prendas, marcas..."
+                            class="w-full pl-10 pr-4 py-2 bg-slate-100/80 dark:bg-stone-800/80 hover:bg-slate-100 dark:hover:bg-stone-800 focus:bg-white dark:focus:bg-stone-900 border border-transparent focus:border-slate-200 dark:focus:border-stone-700 rounded-full text-xs sm:text-sm text-slate-900 dark:text-stone-100 placeholder:text-slate-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#007782]/40 transition-all shadow-inner"
+                        />
+                    </div>
+                </div>
+
+                <!-- Derecha: CTA "Vender prenda", Theme Toggle, Notificaciones y Menú de perfil reactivo -->
+                <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                    <!-- Botón CTA Pill "Vender prenda" -->
+                    <a
+                        routerLink="/products/new"
+                        class="hidden sm:inline-flex items-center gap-1.5 bg-[#007782] hover:bg-[#005f69] active:scale-95 text-white font-semibold text-xs sm:text-sm px-4 sm:px-5 py-2 rounded-full shadow-sm shadow-[#007782]/20 transition-all cursor-pointer"
+                    >
+                        <span class="material-symbols-outlined text-[17px]">add</span>
+                        <span>Vender prenda</span>
+                    </a>
+
+                    <!-- Botón Selector Modo Claro / Oscuro -->
+                    <app-theme-toggle></app-theme-toggle>
+
+                    <!-- Icono de Notificaciones -->
+                    <button
+                        type="button"
+                        (click)="onNotificationClick()"
+                        class="w-9 h-9 rounded-full hover:bg-slate-100 dark:hover:bg-stone-800 text-slate-600 dark:text-stone-300 hover:text-slate-900 dark:hover:text-stone-100 flex items-center justify-center transition-colors relative cursor-pointer"
+                        aria-label="Notificaciones"
+                    >
+                        <span class="material-symbols-outlined text-[20px]">notifications</span>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#d97757]"></span>
+                    </button>
+
+                    <!-- Menú de Usuario / Auth reactivo a AuthStore -->
+                    @if (authStore.isAuthenticated()) {
+                        <div class="relative">
+                            <button
+                                type="button"
+                                (click)="isMenuOpen.set(!isMenuOpen())"
+                                class="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+                            >
+                                <img
+                                    [src]="authStore.avatar()"
+                                    [alt]="authStore.username()"
+                                    class="w-8 h-8 rounded-full object-cover ring-2 ring-[#007782]/25 shadow-2xs"
+                                />
+                                <span
+                                    class="text-xs font-bold text-slate-800 dark:text-stone-200 hidden lg:inline max-w-[100px] truncate"
+                                >
+                                    {{ authStore.username() }}
+                                </span>
+                                <span class="material-symbols-outlined text-[16px] text-slate-500 dark:text-stone-400"
+                                    >expand_more</span
+                                >
+                            </button>
+
+                            @if (isMenuOpen()) {
+                                <div
+                                    class="absolute right-0 top-full mt-2 w-52 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 dark:border-stone-800 py-2 z-50 divide-y divide-slate-100 dark:divide-stone-800"
+                                >
+                                    <div class="px-4 py-2.5">
+                                        <p class="text-xs text-slate-400 dark:text-stone-400">Sesión iniciada como</p>
+                                        <p class="text-sm font-bold text-slate-900 dark:text-stone-100 truncate">
+                                            {{ authStore.username() }}
+                                        </p>
+                                    </div>
+                                    <div class="py-1">
+                                        <a
+                                            routerLink="/profile"
+                                            (click)="isMenuOpen.set(false)"
+                                            class="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-stone-300 hover:bg-slate-50 dark:hover:bg-stone-800"
+                                        >
+                                            <span class="material-symbols-outlined text-[17px] text-slate-400"
+                                                >person</span
+                                            >
+                                            <span>Mi Perfil</span>
+                                        </a>
+                                        <a
+                                            routerLink="/products/new"
+                                            (click)="isMenuOpen.set(false)"
+                                            class="sm:hidden flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-stone-300 hover:bg-slate-50 dark:hover:bg-stone-800"
+                                        >
+                                            <span class="material-symbols-outlined text-[17px] text-[#007782]"
+                                                >add_circle</span
+                                            >
+                                            <span>Vender prenda</span>
+                                        </a>
+                                        @if (authStore.userRole() === "ADMIN") {
+                                            <a
+                                                routerLink="/admin/products"
+                                                (click)="isMenuOpen.set(false)"
+                                                class="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#007782] dark:text-[#4db8c4] hover:bg-slate-50 dark:hover:bg-stone-800"
+                                            >
+                                                <span class="material-symbols-outlined text-[17px]"
+                                                    >admin_panel_settings</span
+                                                >
+                                                <span>Panel Admin</span>
+                                            </a>
+                                        }
+                                    </div>
+                                    <div class="pt-1">
+                                        <button
+                                            type="button"
+                                            (click)="handleLogout()"
+                                            class="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                                        >
+                                            <span class="material-symbols-outlined text-[17px]">logout</span>
+                                            <span>Cerrar sesión</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    } @else {
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <a
+                                routerLink="/login"
+                                class="px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-700 dark:text-stone-300 hover:text-[#007782] dark:hover:text-[#4db8c4] hover:bg-slate-100/70 dark:hover:bg-stone-800/70 transition-all"
+                            >
+                                Entrar
+                            </a>
+                            <a
+                                routerLink="/register"
+                                class="px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold bg-[#007782] text-white hover:bg-[#005f69] shadow-xs transition-all"
+                            >
+                                Registro
+                            </a>
+                        </div>
+                    }
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-  `
+        </header>
+    `,
 })
 export class NavbarComponent {
-  authStore = inject(AuthStore);
-  private authService = inject(AuthService);
-  private router = inject(Router);
+    authStore = inject(AuthStore);
+    private authService = inject(AuthService);
+    private router = inject(Router);
 
-  isUserMenuOpen = signal(false);
+    searchTerm = "";
+    isMenuOpen = signal<boolean>(false);
 
-  toggleUserMenu(): void {
-    this.isUserMenuOpen.update(v => !v);
-  }
+    onSearch(): void {
+        const term = this.searchTerm.trim();
+        if (term) {
+            this.router.navigate(["/products"], { queryParams: { search: term } });
+        } else {
+            this.router.navigate(["/products"]);
+        }
+    }
 
-  handleLogout(): void {
-    this.isUserMenuOpen.set(false);
-    Swal.fire({
-      title: '¿Cerrar sesión?',
-      text: '¿Seguro que deseas salir de tu cuenta en Vintod?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#007782',
-      cancelButtonColor: '#94a3b8',
-      confirmButtonText: 'Sí, salir',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.authService.logout();
+    onNotificationClick(): void {
         Swal.fire({
-          icon: 'success',
-          title: 'Sesión cerrada',
-          text: 'Has salido de tu cuenta.',
-          timer: 1500,
-          showConfirmButton: false
+            icon: "info",
+            title: "Notificaciones",
+            text: "No tienes notificaciones pendientes en este momento.",
+            confirmButtonColor: "#007782",
         });
-        this.router.navigate(['/login']);
-      }
-    });
-  }
+    }
+
+    handleLogout(): void {
+        this.isMenuOpen.set(false);
+        Swal.fire({
+            title: "¿Cerrar sesión?",
+            text: "Tendrás que iniciar sesión nuevamente para comprar o publicar prendas.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Sí, cerrar sesión",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#007782",
+        }).then(result => {
+            if (result.isConfirmed) {
+                this.authService.logout();
+                this.router.navigate(["/login"]);
+            }
+        });
+    }
 }
