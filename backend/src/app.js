@@ -13,6 +13,7 @@ const productsRouter = require('./routes/products.routes');
 const categoriesRouter = require('./routes/categories.routes');
 const brandsRouter = require('./routes/brands.routes');
 const likesRouter = require('./routes/likes.routes');
+const reviewsRouter = require('./routes/reviews.routes');
 const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -64,6 +65,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/brands', brandsRouter);
 app.use('/api/likes', likesRouter);
+app.use('/api/reviews', reviewsRouter);
 
 // Manejo de rutas no encontradas (404)
 app.use(notFound);

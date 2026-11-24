@@ -42,11 +42,13 @@ model User {
   roleId        String    @db.ObjectId
 
   // Relaciones
-  role          Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  profile       Profile?
-  products      Product[] @relation("SellerProducts")
-  refreshTokens RefreshToken[]
-  likes         Like[]
+  role            Role           @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  profile         Profile?
+  products        Product[]      @relation("SellerProducts")
+  refreshTokens   RefreshToken[]
+  likes           Like[]
+  reviewsWritten  Review[]       @relation("ReviewsWritten")
+  reviewsReceived Review[]       @relation("ReviewsReceived")
 
   @@index([deletedAt, isActive])
   @@index([roleId])
@@ -267,4 +269,26 @@ model Like {
   @@index([productId])
   @@index([userId])
   @@map("likes")
+}
+
+// -------------------------------------------------------------
+// 11. VALORACIONES DE USUARIOS (Reviews / Ratings)
+// -------------------------------------------------------------
+model Review {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating       Int      // Puntuación del 1 al 5
+  comment      String?
+  authorId     String   @db.ObjectId
+  targetUserId String   @db.ObjectId
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones con integridad referencial
+  author       User     @relation("ReviewsWritten", fields: [authorId], references: [id], onDelete: Cascade)
+  targetUser   User     @relation("ReviewsReceived", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@unique([authorId, targetUserId])
+  @@index([targetUserId, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@map("reviews")
 }
