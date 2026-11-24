@@ -94,6 +94,69 @@ const authenticateJWT = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware de autenticación opcional:
+ * Si hay un access token válido y no revocado, adjunta req.user y req.token.
+ * Si no hay token o es inválido/expirado, continúa sin lanzar error (req.user = null).
+ */
+const optionalAuthenticateJWT = async (req, res, next) => {
+  try {
+    let token = null;
+
+    if (req.cookie_access) {
+      token = req.cookie_access;
+    } else if (req.cookies) {
+      token =
+        req.cookies[COOKIE_ACCESS_NAME] ||
+        req.cookies[ACCESS_COOKIE_NAME] ||
+        req.cookies['cookie_acces'] ||
+        req.cookies[LEGACY_COOKIE_NAME];
+    }
+
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      req.user = null;
+      return next();
+    }
+
+    const isRevoked = await backlistRepo.isTokenInBacklist(token);
+    if (isRevoked) {
+      req.user = null;
+      return next();
+    }
+
+    const decoded = verifyAccessToken(token);
+    const userId = decoded.userId || decoded.id;
+    if (!userId) {
+      req.user = null;
+      return next();
+    }
+
+    const user = await usersRepo.findById(userId);
+    if (!user || user.deletedAt || !user.isActive) {
+      req.user = null;
+      return next();
+    }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role ? user.role.name : 'USER',
+      roleId: user.roleId,
+      profile: user.profile,
+    };
+    req.token = token;
+    return next();
+  } catch {
+    req.user = null;
+    return next();
+  }
+};
+
 module.exports = {
   authenticateJWT,
+  optionalAuthenticateJWT,
 };

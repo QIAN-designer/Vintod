@@ -19,6 +19,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           errorMessage = error.error?.error?.message || error.error?.error || error.error?.message || 'Solicitud incorrecta';
         } else if (error.status === 404) {
           errorMessage = error.error?.error?.message || 'Recurso no encontrado';
+        } else if (error.status === 409) {
+          errorMessage = error.error?.error?.message || error.error?.message || 'La operación ya ha sido realizada anteriormente';
         } else if (error.status === 500) {
           errorMessage = error.error?.error?.message || 'Error interno del servidor';
         } else {
@@ -27,13 +29,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
       
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
+        icon: error.status === 409 ? 'warning' : 'error',
+        title: error.status === 409 ? 'Acción no permitida' : 'Error',
         text: errorMessage,
         confirmButtonColor: '#007782'
       });
       
-      return throwError(() => new Error(errorMessage));
+      return throwError(() => error);
     })
   );
 };

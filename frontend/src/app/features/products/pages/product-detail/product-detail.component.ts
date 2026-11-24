@@ -3,6 +3,7 @@ import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { AuthStore } from '../../../../core/auth/auth.store';
+import { ProductLikeButtonComponent } from '../../components/product-like-button/product-like-button.component';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import Swal from 'sweetalert2';
 
@@ -18,6 +19,7 @@ export interface ProductDetailItem {
   color?: string;
   stock?: number;
   status?: string;
+  likesCount?: number;
   createdAt?: string | Date;
   sellerId?: string;
   brand: {
@@ -52,7 +54,7 @@ export interface ProductDetailItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, RouterLink, NgxSkeletonLoaderModule],
+  imports: [CommonModule, CurrencyPipe, DecimalPipe, RouterLink, NgxSkeletonLoaderModule, ProductLikeButtonComponent],
   template: `
     <div class="relative w-full pb-24 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-stone-100 transition-colors duration-300">
 
@@ -313,21 +315,11 @@ export interface ProductDetailItem {
                   <span>Comprar ahora</span>
                 </button>
 
-                <!-- Botón Favorito -->
-                <button
-                  type="button"
-                  (click)="toggleFavorite()"
-                  [attr.aria-label]="isFavorite() ? 'Quitar de favoritos' : 'Añadir a favoritos'"
-                  class="w-12 h-12 rounded-full border border-slate-300/80 dark:border-stone-700 bg-white/70 dark:bg-stone-800/80 hover:bg-white dark:hover:bg-stone-800 flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95 shrink-0"
-                  [ngClass]="isFavorite() ? 'text-rose-500 border-rose-200 dark:border-rose-900 bg-rose-50/60 dark:bg-rose-950/40' : 'text-slate-700 dark:text-stone-200'"
-                >
-                  <span
-                    class="material-symbols-outlined text-[22px] transition-transform"
-                    [class.fill-current]="isFavorite()"
-                  >
-                    {{ isFavorite() ? 'favorite' : 'favorite_border' }}
-                  </span>
-                </button>
+                <!-- Componente de Like (solo en Shop Details) -->
+                <app-product-like-button
+                  [productId]="prod.id"
+                  [initialLikesCount]="prod.likesCount ?? 0"
+                />
               </div>
 
             </div>
@@ -352,7 +344,6 @@ export class ProductDetailComponent implements OnInit {
 
   product = signal<ProductDetailItem | null>(null);
   activeImageIndex = signal<number>(0);
-  isFavorite = signal<boolean>(false);
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
 
@@ -504,6 +495,7 @@ export class ProductDetailComponent implements OnInit {
       color: primaryVariant?.color || raw.color || '',
       stock: primaryVariant?.stock ?? raw.stock ?? 1,
       status: raw.status || 'available',
+      likesCount: raw.likesCount ?? 0,
       createdAt: raw.createdAt,
       sellerId: raw.sellerId || sellerObj?.id,
       brand: {
@@ -542,24 +534,6 @@ export class ProductDetailComponent implements OnInit {
     const total = this.imagesList().length;
     if (total <= 1) return;
     this.activeImageIndex.set((current + 1) % total);
-  }
-
-  toggleFavorite() {
-    const nextState = !this.isFavorite();
-    this.isFavorite.set(nextState);
-
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 2000,
-      timerProgressBar: false
-    });
-
-    Toast.fire({
-      icon: 'success',
-      title: nextState ? 'Guardado en favoritos' : 'Eliminado de favoritos'
-    });
   }
 
   handleBuyNow() {

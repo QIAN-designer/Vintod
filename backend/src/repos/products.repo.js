@@ -90,7 +90,7 @@ const ensureDefaultEntities = async (data = {}) => {
 // Convierte el formato relacional del nuevo modelo al formato amigable del frontend
 const mapProduct = product => {
     if (!product) return product;
-    const { id, variants, brand, category, seller, ...rest } = product;
+    const { id, variants, brand, category, seller, _count, ...rest } = product;
 
     // Variante principal / primera variante
     const primaryVariant = variants && variants.length > 0 ? variants[0] : null;
@@ -107,6 +107,7 @@ const mapProduct = product => {
         id,
         ...rest,
         visits: product.visits ?? 0,
+        likesCount: _count?.likes ?? 0,
         // Compatibilidad con frontend catálogo
         price: primaryVariant ? primaryVariant.price : 0,
         size: primaryVariant ? primaryVariant.size : "",
@@ -141,6 +142,11 @@ const productInclude = {
             images: {
                 orderBy: { sortOrder: 'asc' },
             },
+        },
+    },
+    _count: {
+        select: {
+            likes: true,
         },
     },
 };
@@ -542,4 +548,6 @@ module.exports = {
     softDelete,
     restore,
     incrementVisits,
+    mapProduct,
+    productInclude,
 };

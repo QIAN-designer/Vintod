@@ -33,37 +33,20 @@
                 Talla {{ product.size }}
             </span>
         }
-
-        <!-- Botón de Favorito Circular Glassmorphism -->
-        <button
-            type="button"
-            (click)="toggleFavorite($event)"
-            class="absolute top-3 right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/85 dark:bg-stone-900/85 backdrop-blur-md border border-white/80 dark:border-stone-700 flex items-center justify-center shadow-xs hover:scale-110 active:scale-90 transition-all cursor-pointer group/fav"
-            [attr.aria-label]="isFavorite() ? 'Quitar de favoritos' : 'Añadir a favoritos'"
-        >
-            <span
-                class="material-symbols-outlined text-[18px] sm:text-[19px] transition-colors"
-                [class.text-rose-500]="isFavorite()"
-                [class.text-slate-600]="!isFavorite()"
-                [style.font-variation-settings]="fontVariationSettings()"
-            >
-                favorite
-            </span>
-        </button>
     </div>
 
     <!-- Cuerpo de la Tarjeta -->
     <div
         class="p-3.5 sm:p-4 flex flex-col gap-1.5 bg-gradient-to-b from-white/60 to-white/95 dark:from-stone-900/60 dark:to-stone-900/95"
     >
-        <!-- Fila Marca y Favoritos -->
+        <!-- Fila Marca y Contador de Likes (solo lectura; like disponible en Shop Details) -->
         <div class="flex items-center justify-between text-xs">
             <span class="font-bold uppercase tracking-wider text-[#007782] dark:text-[#4db8c4] truncate max-w-[140px]">
                 {{ product.brand || "Vintage Archive" }}
             </span>
             <div class="flex items-center gap-1 text-[11px] font-semibold text-slate-400 dark:text-stone-400">
                 <span class="material-symbols-outlined text-[13px]">favorite</span>
-                <span>{{ favCount() }}</span>
+                <span>{{ product.likesCount ?? 0 }}</span>
             </div>
         </div>
 

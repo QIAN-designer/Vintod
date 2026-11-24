@@ -59,6 +59,12 @@ export const routes: Routes = [
         path: 'profile',
         canActivate: [authGuard],
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfilePageComponent)
+      },
+      // Ruta privada de Favoritos
+      {
+        path: 'favorites',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/favorites/favorites.component').then(m => m.FavoritesComponent)
       }
     ]
   },

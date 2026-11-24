@@ -1,6 +1,6 @@
 import { Component, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Router, RouterLink } from "@angular/router";
+import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 import Swal from "sweetalert2";
 import { AuthService } from "../../../core/auth/auth.service";
 import { AuthStore } from "../../../core/auth/auth.store";
@@ -9,7 +9,7 @@ import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component";
 @Component({
     selector: "app-navbar",
     standalone: true,
-    imports: [RouterLink, FormsModule, ThemeToggleComponent],
+    imports: [RouterLink, RouterLinkActive, FormsModule, ThemeToggleComponent],
     template: `
         <header class="fixed top-4 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pointer-events-none">
             <div
@@ -80,6 +80,17 @@ import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component";
                     <!-- Botón Selector Modo Claro / Oscuro -->
                     <app-theme-toggle></app-theme-toggle>
 
+                    <!-- Botón de Favoritos (Corazón) -->
+                    <a
+                        routerLink="/favorites"
+                        routerLinkActive="!text-rose-500 bg-rose-50/80 dark:bg-rose-950/40"
+                        class="w-9 h-9 rounded-full hover:bg-rose-50/70 dark:hover:bg-stone-800 text-slate-600 dark:text-stone-300 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center transition-colors cursor-pointer"
+                        aria-label="Mis favoritos"
+                        title="Mis favoritos"
+                    >
+                        <span class="material-symbols-outlined text-[20px]">favorite</span>
+                    </a>
+
                     <!-- Icono de Notificaciones -->
                     <button
                         type="button"
@@ -134,6 +145,16 @@ import { ThemeToggleComponent } from "../theme-toggle/theme-toggle.component";
                                                 >person</span
                                             >
                                             <span>Mi Perfil</span>
+                                        </a>
+                                        <a
+                                            routerLink="/favorites"
+                                            (click)="isMenuOpen.set(false)"
+                                            class="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-stone-300 hover:bg-slate-50 dark:hover:bg-stone-800"
+                                        >
+                                            <span class="material-symbols-outlined text-[17px] text-rose-500"
+                                                >favorite</span
+                                            >
+                                            <span>Mis Favoritos</span>
                                         </a>
                                         <a
                                             routerLink="/products/new"

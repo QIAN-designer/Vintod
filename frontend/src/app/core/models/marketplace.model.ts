@@ -73,6 +73,7 @@ export interface Product {
   status?: string;
   viewsCount?: number;
   visits?: number;
+  likesCount?: number;
   isActive?: boolean;
   deletedAt?: string | Date | null;
   createdAt?: string | Date;
