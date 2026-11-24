@@ -1,17 +1,29 @@
-version: '3.8'
-
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0
     container_name: vintod_mongodb
+    restart: unless-stopped
     ports:
       - "27017:27017"
     # Inicia MongoDB con Replica Set habilitado ('rs0') sin autenticación para facilitar el desarrollo
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     volumes:
-      - C:/Users/Mr.P/docker/mongo:/data/db
+      - mongo_mongodb_data:/data/db
     healthcheck:
       # Inicializa la replica automáticamente cuando el contenedor arranca
-      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongosh --quiet) -eq 1
+      test: >
+        mongosh --quiet --eval "
+          try {
+            rs.status().ok ? quit(0) : quit(1)
+          } catch (e) {
+            rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: '127.0.0.1:27017' }] }).ok ? quit(0) : quit(1)
+          }
+        "
       interval: 10s
-      start_period: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mongo_mongodb_data:
+    external: true

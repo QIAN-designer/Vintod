@@ -1,1 +1,2 @@
-node "$PSScriptRoot\start.js"
+$scriptPath = Join-Path $PSScriptRoot "start.js"
+node $scriptPath

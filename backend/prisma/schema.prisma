@@ -45,6 +45,7 @@ model User {
   role          Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
   profile       Profile?
   products      Product[] @relation("SellerProducts")
+  refreshTokens RefreshToken[]
 
   @@index([deletedAt, isActive])
   @@index([roleId])
@@ -226,4 +227,22 @@ model Backlist {
 
   @@index([expiresAt])
   @@map("backlist")
+}
+
+// -------------------------------------------------------------
+// 9. REFRESH TOKENS (Sesiones y Renovación de Acceso)
+// -------------------------------------------------------------
+model RefreshToken {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  token     String    @unique
+  userId    String    @db.ObjectId
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }

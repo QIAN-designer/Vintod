@@ -1,23 +1,24 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { AuthUser, UserRole } from './auth.models';
 
-const TOKEN_KEY = 'vintod_jwt_token';
-const USER_KEY = 'vintod_user_data';
+const LEGACY_AUTH_KEYS = ['vintod_jwt_token', 'vintod_refresh_token', 'vintod_user_data'];
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthStore {
-  // Estado privado con Signals
-  private userSignal = signal<AuthUser | null>(this.getInitialUser());
-  private tokenSignal = signal<string | null>(this.getInitialToken());
+  // Estado privado únicamente en memoria con Signals (sin localStorage)
+  private userSignal = signal<AuthUser | null>(null);
+  private tokenSignal = signal<string | null>(null);
+  private refreshTokenSignal = signal<string | null>(null);
 
   // Signals públicas de solo lectura
   readonly user = this.userSignal.asReadonly();
   readonly token = this.tokenSignal.asReadonly();
+  readonly refreshToken = this.refreshTokenSignal.asReadonly();
 
   // Signals computadas reactivas
-  readonly isAuthenticated = computed(() => !!this.tokenSignal());
+  readonly isAuthenticated = computed(() => !!this.userSignal() || !!this.tokenSignal());
   readonly isAdmin = computed(() => {
     const current = this.userSignal();
     const roleName = typeof current?.role === 'string'
@@ -41,44 +42,36 @@ export class AuthStore {
     return this.userSignal()?.profile?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
   });
 
+  constructor() {
+    this.purgeLegacyLocalStorage();
+  }
+
   /**
-   * Actualiza el estado reactivo de sesión y persiste en localStorage
+   * Actualiza el estado reactivo de sesión en memoria (las cookies httpOnly persisten la sesión)
    */
-  setSession(token: string, user: AuthUser): void {
-    try {
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } catch (e) {
-      console.error('Error saving session to localStorage:', e);
-    }
+  setSession(token: string, user: AuthUser, refreshToken?: string | null): void {
     this.tokenSignal.set(token);
     this.userSignal.set(user);
+    if (refreshToken !== undefined) {
+      this.refreshTokenSignal.set(refreshToken);
+    }
   }
 
   /**
-   * Actualiza únicamente la información de usuario (útil tras llamar a /me o editar perfil)
+   * Actualiza únicamente la información de usuario en memoria (útil tras /me o editar perfil)
    */
   updateUser(user: AuthUser): void {
-    try {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } catch (e) {
-      console.error('Error updating user in localStorage:', e);
-    }
     this.userSignal.set(user);
   }
 
   /**
-   * Limpia señales y elimina datos del localStorage
+   * Limpia todas las señales de autenticación en memoria
    */
   clearSession(): void {
-    try {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-    } catch (e) {
-      console.error('Error clearing session from localStorage:', e);
-    }
     this.tokenSignal.set(null);
+    this.refreshTokenSignal.set(null);
     this.userSignal.set(null);
+    this.purgeLegacyLocalStorage();
   }
 
   /**
@@ -89,22 +82,16 @@ export class AuthStore {
     return currentRole === role.toUpperCase();
   }
 
-  // Métodos auxiliares para inicialización desde localStorage
-  private getInitialToken(): string | null {
+  /**
+   * Elimina cualquier clave antigua de autenticación que hubiera quedado en localStorage
+   */
+  private purgeLegacyLocalStorage(): void {
     try {
-      return localStorage.getItem(TOKEN_KEY);
+      for (const key of LEGACY_AUTH_KEYS) {
+        localStorage.removeItem(key);
+      }
     } catch {
-      return null;
-    }
-  }
-
-  private getInitialUser(): AuthUser | null {
-    try {
-      const data = localStorage.getItem(USER_KEY);
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
+      // Ignorar si localStorage no está disponible
     }
   }
 }
-

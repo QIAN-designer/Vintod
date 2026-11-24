@@ -41,6 +41,8 @@ export interface RegisterData {
 export interface AuthResponseData {
   user: AuthUser;
   token: string;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 export interface AuthApiResponse {
@@ -60,4 +62,3 @@ export interface MeApiResponse {
     statusCode?: number;
   } | string;
 }
-
