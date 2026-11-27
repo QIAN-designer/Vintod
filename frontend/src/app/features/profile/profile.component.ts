@@ -1,21 +1,32 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import Swal from 'sweetalert2';
 import { AuthStore } from '../../core/auth/auth.store';
 import { ProfileService, ProfileApiResponse } from '../../core/services/profile.service';
 import { ProductService } from '../../core/services/product.service';
-import { ReviewService, UserReview } from '../../core/services/review.service';
+import { ReviewService } from '../../core/services/review.service';
 import { Product } from '../../core/models/product.model';
 import { ProductCardComponent } from '../products/components/product-card/product-card.component';
+import {
+  UserReviewsComponent,
+  ReviewStatsEvent,
+} from '../../shared/components/user-reviews/user-reviews.component';
 
 type ProfileTab = 'listings' | 'reviews';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, DatePipe, DecimalPipe, ProductCardComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    DecimalPipe,
+    ProductCardComponent,
+    UserReviewsComponent,
+  ],
   template: `
     <div class="max-w-6xl mx-auto py-8 pb-24 px-4 sm:px-6 lg:px-8 space-y-6 text-slate-900 dark:text-stone-100">
 
@@ -344,143 +355,15 @@ type ProfileTab = 'listings' | 'reviews';
         </section>
       }
 
-      <!-- APARTADO 2: VALORACIONES -->
+      <!-- APARTADO 2: VALORACIONES (Componente dedicado UserReviewsComponent) -->
       @if (activeTab() === 'reviews') {
-        <section class="space-y-6">
-          <div>
-            <h2 class="text-xl font-extrabold text-slate-900 dark:text-stone-100">Valoraciones recibidas</h2>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-stone-400">
-              Opiniones que otros usuarios han dejado sobre tu perfil y la media calculada automáticamente.
-            </p>
-          </div>
-
-          @if (loadingReviews()) {
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-pulse">
-              <div class="lg:col-span-4 h-56 bg-white/80 dark:bg-stone-900/80 rounded-3xl border border-white/60 dark:border-stone-800"></div>
-              <div class="lg:col-span-8 space-y-4">
-                <div class="h-28 bg-white/80 dark:bg-stone-900/80 rounded-2xl border border-white/60 dark:border-stone-800"></div>
-                <div class="h-28 bg-white/80 dark:bg-stone-900/80 rounded-2xl border border-white/60 dark:border-stone-800"></div>
-              </div>
-            </div>
-          } @else {
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-              <!-- Tarjeta de Media de Valoraciones -->
-              <div class="lg:col-span-4 bg-white/85 dark:bg-stone-900/85 backdrop-blur-md border border-white/70 dark:border-stone-800 rounded-3xl p-6 shadow-sm space-y-5">
-                <div class="text-center">
-                  <p class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-stone-400">
-                    Media global
-                  </p>
-                  <div class="mt-2 flex items-baseline justify-center gap-1">
-                    <span class="text-5xl font-black text-slate-900 dark:text-stone-100 tabular-nums">
-                      {{ ratingCount() > 0 ? (ratingAverage() | number:'1.1-1') : '0.0' }}
-                    </span>
-                    <span class="text-base font-bold text-slate-400 dark:text-stone-500">/ 5</span>
-                  </div>
-
-                  <!-- Estrellas visuales de la media -->
-                  <div class="flex items-center justify-center gap-1 mt-2">
-                    @for (star of starScale; track star) {
-                      <span
-                        class="material-symbols-outlined text-[22px]"
-                        [ngClass]="star <= roundedAverage() ? 'text-amber-400' : 'text-slate-300 dark:text-stone-700'"
-                        [style.font-variation-settings]="star <= roundedAverage() ? &quot;'FILL' 1&quot; : &quot;'FILL' 0&quot;"
-                      >
-                        star
-                      </span>
-                    }
-                  </div>
-
-                  <p class="text-xs text-slate-500 dark:text-stone-400 mt-2">
-                    Basada en <strong>{{ ratingCount() }}</strong> {{ ratingCount() === 1 ? 'valoración' : 'valoraciones' }}
-                  </p>
-                </div>
-
-                <!-- Distribución por estrellas (5 -> 1) -->
-                <div class="space-y-2 pt-3 border-t border-slate-100 dark:border-stone-800">
-                  @for (star of starBreakdownOrder; track star) {
-                    <div class="flex items-center gap-2.5 text-xs">
-                      <span class="w-8 font-bold text-slate-600 dark:text-stone-300 inline-flex items-center gap-0.5 shrink-0">
-                        {{ star }}
-                        <span class="material-symbols-outlined text-[13px] text-amber-400" style="font-variation-settings: 'FILL' 1">star</span>
-                      </span>
-                      <div class="flex-1 h-2 bg-slate-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                        <div
-                          class="h-full bg-amber-400 rounded-full transition-all duration-300"
-                          [style.width.%]="getStarPercentage(star)"
-                        ></div>
-                      </div>
-                      <span class="w-6 text-right font-semibold text-slate-500 dark:text-stone-400 tabular-nums">
-                        {{ ratingDistribution()[star] || 0 }}
-                      </span>
-                    </div>
-                  }
-                </div>
-              </div>
-
-              <!-- Listado de Valoraciones -->
-              <div class="lg:col-span-8 space-y-4">
-                @if (reviews().length === 0) {
-                  <div class="bg-white/85 dark:bg-stone-900/85 backdrop-blur-md border border-white/70 dark:border-stone-800 rounded-3xl p-10 text-center shadow-sm">
-                    <div class="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-500 mx-auto flex items-center justify-center mb-3">
-                      <span class="material-symbols-outlined text-3xl">reviews</span>
-                    </div>
-                    <h3 class="text-base font-bold text-slate-900 dark:text-stone-100">
-                      Todavía no has recibido valoraciones
-                    </h3>
-                    <p class="text-sm text-slate-500 dark:text-stone-400 mt-1.5 max-w-md mx-auto">
-                      Cuando otros usuarios te valoren en Vintod, sus puntuaciones y comentarios aparecerán aquí junto con tu media.
-                    </p>
-                  </div>
-                } @else {
-                  @for (review of reviews(); track review.id) {
-                    <article class="bg-white/85 dark:bg-stone-900/85 backdrop-blur-md border border-white/70 dark:border-stone-800 rounded-2xl p-5 shadow-2xs space-y-3">
-                      <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3 min-w-0">
-                          <img
-                            [src]="review.author.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80'"
-                            [alt]="review.author.username"
-                            class="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100 dark:ring-stone-800 shrink-0"
-                          />
-                          <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-900 dark:text-stone-100 truncate">
-                              &#64;{{ review.author.username }}
-                            </p>
-                            <p class="text-xs text-slate-400 dark:text-stone-400">
-                              {{ review.createdAt | date:'dd MMM yyyy' }}
-                              @if (review.author.city) {
-                                <span> • {{ review.author.city }}</span>
-                              }
-                            </p>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center gap-0.5 shrink-0" [attr.aria-label]="review.rating + ' de 5 estrellas'">
-                          @for (star of starScale; track star) {
-                            <span
-                              class="material-symbols-outlined text-[18px]"
-                              [ngClass]="star <= review.rating ? 'text-amber-400' : 'text-slate-300 dark:text-stone-700'"
-                              [style.font-variation-settings]="star <= review.rating ? &quot;'FILL' 1&quot; : &quot;'FILL' 0&quot;"
-                            >
-                              star
-                            </span>
-                          }
-                        </div>
-                      </div>
-
-                      @if (review.comment) {
-                        <p class="text-sm text-slate-600 dark:text-stone-300 leading-relaxed">
-                          {{ review.comment }}
-                        </p>
-                      }
-                    </article>
-                  }
-                }
-              </div>
-
-            </div>
-          }
-        </section>
+        <app-user-reviews
+          [useMyEndpoint]="true"
+          [allowCreate]="false"
+          heading="Valoraciones recibidas"
+          subtitle="Opiniones que otros usuarios han dejado sobre tu perfil y la media calculada automáticamente."
+          (statsLoaded)="onReviewsStatsLoaded($event)"
+        />
       }
 
     </div>
@@ -492,9 +375,6 @@ export class ProfilePageComponent implements OnInit {
   private productService = inject(ProductService);
   private reviewService = inject(ReviewService);
   private fb = inject(FormBuilder);
-
-  readonly starScale = [1, 2, 3, 4, 5];
-  readonly starBreakdownOrder = [5, 4, 3, 2, 1];
 
   activeTab = signal<ProfileTab>('listings');
   isEditingProfile = signal<boolean>(false);
@@ -510,13 +390,9 @@ export class ProfilePageComponent implements OnInit {
   myProducts = signal<Product[]>([]);
   loadingProducts = signal<boolean>(true);
 
-  // Valoraciones
-  reviews = signal<UserReview[]>([]);
-  loadingReviews = signal<boolean>(true);
+  // Resumen de valoraciones para la cabecera y el contador de la pestaña
   ratingAverage = signal<number>(0);
   ratingCount = signal<number>(0);
-  ratingDistribution = signal<Record<number, number>>({ 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 });
-  roundedAverage = computed(() => Math.round(this.ratingAverage()));
 
   profileForm: FormGroup = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3)]],
@@ -548,7 +424,20 @@ export class ProfilePageComponent implements OnInit {
       this.loadingProducts.set(false);
     }
 
-    this.loadMyReviews();
+    this.reviewService.getMyReviews().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.ratingAverage.set(res.data.ratingAverage ?? 0);
+          this.ratingCount.set(res.data.ratingCount ?? 0);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  onReviewsStatsLoaded(stats: ReviewStatsEvent): void {
+    this.ratingAverage.set(stats.ratingAverage);
+    this.ratingCount.set(stats.ratingCount);
   }
 
   toggleEditProfile(): void {
@@ -569,13 +458,6 @@ export class ProfilePageComponent implements OnInit {
     this.isEditingProfile.set(false);
   }
 
-  getStarPercentage(star: number): number {
-    const total = this.ratingCount();
-    if (!total) return 0;
-    const count = this.ratingDistribution()[star] || 0;
-    return Math.round((count / total) * 100);
-  }
-
   private loadMyProducts(userId: string): void {
     this.loadingProducts.set(true);
     this.productService.getProducts({ sellerId: userId, limit: 100 }).subscribe({
@@ -585,26 +467,6 @@ export class ProfilePageComponent implements OnInit {
       },
       error: () => {
         this.loadingProducts.set(false);
-      }
-    });
-  }
-
-  private loadMyReviews(): void {
-    this.loadingReviews.set(true);
-    this.reviewService.getMyReviews().subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.reviews.set(res.data.reviews || []);
-          this.ratingAverage.set(res.data.ratingAverage ?? 0);
-          this.ratingCount.set(res.data.ratingCount ?? 0);
-          this.ratingDistribution.set(
-            res.data.distribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-          );
-        }
-        this.loadingReviews.set(false);
-      },
-      error: () => {
-        this.loadingReviews.set(false);
       }
     });
   }

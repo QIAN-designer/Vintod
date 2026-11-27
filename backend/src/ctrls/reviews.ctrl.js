@@ -42,15 +42,7 @@ const createReview = async (req, res, next) => {
 
 const deleteReview = async (req, res, next) => {
   try {
-    const result = await reviewsService.deleteReview(
-      req.params.reviewId,
-      req.user.id,
-      req.user.role
-    );
-    res.status(200).json({
-      success: true,
-      data: result,
-    });
+    await reviewsService.deleteReview();
   } catch (error) {
     next(error);
   }

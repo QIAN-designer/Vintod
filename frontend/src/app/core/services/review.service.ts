@@ -56,7 +56,7 @@ export class ReviewService {
 
   createReview(
     userId: string,
-    payload: { rating: number; comment?: string }
+    payload: { rating: number; comment: string }
   ): Observable<{ success: boolean; data: { review: UserReview; ratingAverage: number; ratingCount: number } }> {
     return this.http.post<{
       success: boolean;

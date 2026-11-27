@@ -4,6 +4,7 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { AuthStore } from '../../../../core/auth/auth.store';
 import { ProductLikeButtonComponent } from '../../components/product-like-button/product-like-button.component';
+import { UserReviewsComponent } from '../../../../shared/components/user-reviews/user-reviews.component';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import Swal from 'sweetalert2';
 
@@ -54,7 +55,15 @@ export interface ProductDetailItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, DecimalPipe, RouterLink, NgxSkeletonLoaderModule, ProductLikeButtonComponent],
+  imports: [
+    CommonModule,
+    CurrencyPipe,
+    DecimalPipe,
+    RouterLink,
+    NgxSkeletonLoaderModule,
+    ProductLikeButtonComponent,
+    UserReviewsComponent,
+  ],
   template: `
     <div class="relative w-full pb-24 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-stone-100 transition-colors duration-300">
 
@@ -325,6 +334,19 @@ export interface ProductDetailItem {
             </div>
 
           </div>
+
+          <!-- Apartado de Valoraciones y Comentarios del Vendedor -->
+          @if (prod.seller.id && prod.seller.id !== 'vintod_seller') {
+            <div class="mt-10">
+              <app-user-reviews
+                [targetUserId]="prod.seller.id"
+                [targetUsername]="prod.seller.username"
+                [allowCreate]="true"
+                [heading]="'Valoraciones de @' + prod.seller.username"
+                subtitle="Comparte tu opinión o consulta las valoraciones que otros usuarios han dejado a este vendedor."
+              />
+            </div>
+          }
           }
         }
 

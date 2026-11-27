@@ -17,11 +17,10 @@ const createReviewSchema = z.object({
     .min(1, 'La puntuación mínima es 1')
     .max(5, 'La puntuación máxima es 5'),
   comment: z
-    .string()
+    .string({ message: 'El comentario es obligatorio' })
     .trim()
-    .max(500, 'El comentario no puede superar los 500 caracteres')
-    .optional()
-    .or(z.literal('')),
+    .min(3, 'El comentario debe tener al menos 3 caracteres')
+    .max(500, 'El comentario no puede superar los 500 caracteres'),
 });
 
 module.exports = {

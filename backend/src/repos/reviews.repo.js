@@ -45,7 +45,7 @@ const createReview = async ({ authorId, targetUserId, rating, comment }) => {
       authorId,
       targetUserId,
       rating,
-      comment: comment || null,
+      comment,
     },
     include: {
       author: {
@@ -62,12 +62,6 @@ const createReview = async ({ authorId, targetUserId, rating, comment }) => {
         },
       },
     },
-  });
-};
-
-const deleteReview = async (id) => {
-  return await prisma.review.delete({
-    where: { id },
   });
 };
 
@@ -110,7 +104,6 @@ module.exports = {
   findByAuthorAndTarget,
   findById,
   createReview,
-  deleteReview,
   findTargetUserById,
   syncProfileRatingStats,
 };

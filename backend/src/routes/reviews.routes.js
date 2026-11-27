@@ -20,7 +20,7 @@ router.get(
   reviewsCtrl.getUserReviews
 );
 
-// Crear valoración para otro usuario (requiere autenticación)
+// Publicar valoración y comentario para otro usuario (requiere autenticación)
 router.post(
   '/user/:userId',
   authenticateJWT,
@@ -28,7 +28,7 @@ router.post(
   reviewsCtrl.createReview
 );
 
-// Eliminar valoración propia (o ADMIN)
+// Bloqueo explícito de borrado de valoraciones/comentarios (devuelve 403 Forbidden)
 router.delete(
   '/:reviewId',
   authenticateJWT,

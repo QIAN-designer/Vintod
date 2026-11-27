@@ -55,9 +55,13 @@ const getUserReviews = async (targetUserId) => {
 };
 
 /**
- * Crea una valoración de authorId hacia targetUserId y recalcula la media en Profile
+ * Crea una valoración con comentario de authorId hacia targetUserId y recalcula la media en Profile
  */
 const createReview = async (authorId, targetUserId, { rating, comment }) => {
+  if (!authorId) {
+    throw new AppError('Debes iniciar sesión para publicar una valoración o comentario.', 401);
+  }
+
   if (authorId === targetUserId) {
     throw new AppError('No puedes valorarte a ti mismo.', 400);
   }
@@ -96,25 +100,13 @@ const createReview = async (authorId, targetUserId, { rating, comment }) => {
 };
 
 /**
- * Elimina una valoración (solo su autor o ADMIN) y recalcula la media del perfil
+ * Control de errores: las valoraciones y comentarios no se pueden eliminar una vez publicados
  */
-const deleteReview = async (reviewId, requesterId, requesterRole) => {
-  const existing = await reviewsRepo.findById(reviewId);
-  if (!existing) {
-    throw new AppError('Valoración no encontrada.', 404);
-  }
-
-  if (existing.authorId !== requesterId && requesterRole !== 'ADMIN') {
-    throw new AppError('No tienes permiso para eliminar esta valoración.', 403);
-  }
-
-  await reviewsRepo.deleteReview(reviewId);
-  const stats = await reviewsRepo.syncProfileRatingStats(existing.targetUserId);
-
-  return {
-    deletedId: reviewId,
-    ...stats,
-  };
+const deleteReview = async () => {
+  throw new AppError(
+    'No está permitido eliminar valoraciones ni comentarios una vez publicados.',
+    403
+  );
 };
 
 module.exports = {
